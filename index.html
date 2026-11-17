@@ -671,7 +671,7 @@ function fld(f,p,v){
  else if(f.t==='select') inp=`<select id="${id}" class="${inputClass}" ${req}><option value="">— Pilih —</option>${f.o.map(o=>`<option ${v===o?'selected':''}>${esc(o)}</option>`).join('')}</select>`;
  else if(['regionProvince','regionRegency','regionDistrict','regionVillage'].includes(f.t)) inp=`<select id="${id}" data-region="${f.t}" class="${inputClass}" ${req}><option value="">${f.t==='regionProvince'?'Memuat provinsi…':'Pilih wilayah sebelumnya terlebih dahulu'}</option></select>`;
  else if(f.t==='ta') inp=`<textarea id="${id}" rows="3" class="${inputClass}" ${req}>${esc(v)}</textarea>`;
- else if(f.t==='file') inp=`<input type="file" id="${id}" accept=".pdf,image/*" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-primary/10 file:text-brand-primary hover:file:bg-brand-primary/20 cursor-pointer border border-slate-200 rounded-xl p-1 bg-slate-50">${v?`<div class="mt-2 text-xs text-slate-500">Tersimpan: <a href="${esc(v)}" target="_blank" class="text-blue-600 hover:underline">Lihat berkas</a></div>`:'<div class="mt-1 text-xs text-slate-400">PDF/JPG/PNG, maks. 4 MB</div>'}`;
+ else if(f.t==='file') inp=`<input type="file" id="${id}" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-primary/10 file:text-brand-primary hover:file:bg-brand-primary/20 cursor-pointer border border-slate-200 rounded-xl p-1 bg-slate-50">${v?`<div class="mt-2 text-xs text-slate-500">Tersimpan: <a href="${esc(v)}" target="_blank" class="text-blue-600 hover:underline">Lihat berkas</a></div>`:'<div class="mt-1 text-xs text-slate-400">PDF/JPG/PNG, maks. 4 MB</div>'}`;
  else inp=`<input type="${f.t||'text'}" id="${id}" value="${esc(v)}" class="${inputClass}" ${req} ${f.t==='number'?'min="0" step="any"':''}>`;
  
  return `<div class="${f.w==='full'?'col-span-full':''} mb-4"><label for="${id}" class="block text-sm font-medium text-slate-700 mb-1.5">${esc(f.l)}${rq}</label>${inp}</div>`;
@@ -701,13 +701,23 @@ function collect(schema,p){
 }
 const readB64=f=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=()=>rej(new Error('Gagal membaca berkas'));r.readAsDataURL(f)});
 async function uploadFiles(schema,p,kind,o){
+ const mimeByExtension={
+  pdf:'application/pdf',
+  jpg:'image/jpeg',
+  jpeg:'image/jpeg',
+  png:'image/png',
+  webp:'image/webp'
+ };
  for(const s of schema)for(const f of s.f){
   if(f.t!=='file')continue;
   const e=document.getElementById(p+'_'+f.k);if(!e||!e.files||!e.files[0])continue;
   const file=e.files[0];
   if(file.size>4*1024*1024)throw new Error(f.l+': ukuran berkas maks 4 MB.');
+  const ext=(String(file.name||'').split('.').pop()||'').toLowerCase();
+  const normalizedMime=mimeByExtension[ext];
+  if(!normalizedMime)throw new Error(f.l+': Format berkas harus PDF, JPG, PNG, atau WEBP.');
   busy(true,'Mengunggah '+f.l+'…');
-  const r=await call('uploadFile',kind,o.nama,file.name,file.type,await readB64(file));
+  const r=await call('uploadFile',kind,o.nama,file.name,normalizedMime,await readB64(file));
   if(!r.ok)throw new Error(f.l+': '+r.msg);
   o[f.k]=r.url;
  }
