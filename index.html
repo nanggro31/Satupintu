@@ -1,20 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<!-- SATU PINTU: pastikan frontend selalu berjalan di dalam pembungkus Web App Apps Script -->
-<script>
-(function () {
-  'use strict';
-  var APPS_SCRIPT_WEB_APP = 'https://script.google.com/macros/s/AKfycbygR-WTkTVi-h0GKI_uN4eOffdy3HOqGMjCTsOcRR4SXyc25v7cuk_j2ocgp7V13fvDag/exec';
-  var host = String(window.location.hostname || '').toLowerCase();
-  var isGithubPages = host === 'nanggro31.github.io';
-  var isTopLevel = window.top === window.self;
-  if (isGithubPages && isTopLevel) {
-    window.location.replace(APPS_SCRIPT_WEB_APP);
-  }
-})();
-</script>
-
 <base target="_top">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -501,45 +487,57 @@ const bridgePending=new Map();
 let bridgeSeq=0;
 let tt;
 
-function toast(m,t){
-    const e=$('#toast');
-    e.textContent=m;
-    if(t==='err') {
-        e.classList.replace('bg-slate-800', 'bg-red-600');
-        e.classList.replace('border-slate-700', 'border-red-500');
-    } else {
-        e.classList.replace('bg-red-600', 'bg-slate-800');
-        e.classList.replace('border-red-500', 'border-slate-700');
-    }
-    e.classList.remove('hidden');
-    clearTimeout(tt);
-    tt=setTimeout(()=>e.classList.add('hidden'),3800);
-}
+// URL deployment Web App Apps Script yang sudah digunakan oleh database SATU PINTU.
+// Iframe ini hanya menjadi jalur komunikasi; alamat browser tetap GitHub Pages.
+const SATUPINTU_BACKEND_URL='https://script.google.com/macros/s/AKfycbygR-WTkTVi-h0GKI_uN4eOffdy3HOqGMjCTsOcRR4SXyc25v7cuk_j2ocgp7V13fvDag/exec';
+const bridgeFrame=document.createElement('iframe');
+bridgeFrame.id='satupintu-backend-bridge';
+bridgeFrame.title='Koneksi server SATU PINTU';
+bridgeFrame.setAttribute('aria-hidden','true');
+bridgeFrame.tabIndex=-1;
+bridgeFrame.style.cssText='position:fixed;left:-10000px;top:0;width:1px;height:1px;border:0;opacity:0;pointer-events:none;';
+let bridgeReadyResolve,bridgeReadyReject;
+const bridgeReady=new Promise((resolve,reject)=>{bridgeReadyResolve=resolve;bridgeReadyReject=reject;});
+// Hindari unhandled rejection bila iframe gagal dimuat sebelum ada permintaan API.
+bridgeReady.catch(()=>{});
+let bridgeLoaded=false;
+const bridgeLoadTimer=setTimeout(()=>{
+ if(!bridgeLoaded)bridgeReadyReject(new Error('Koneksi ke server SATU PINTU tidak berhasil dimuat. Periksa URL deployment Apps Script dan akses Web App.'));
+},30000);
+bridgeFrame.addEventListener('load',()=>{
+ if(bridgeLoaded)return;
+ bridgeLoaded=true;clearTimeout(bridgeLoadTimer);bridgeReadyResolve(true);
+});
+bridgeFrame.addEventListener('error',()=>{
+ if(bridgeLoaded)return;
+ clearTimeout(bridgeLoadTimer);bridgeReadyReject(new Error('Browser gagal memuat koneksi server SATU PINTU.'));
+});
+bridgeFrame.src=SATUPINTU_BACKEND_URL;
+document.body.appendChild(bridgeFrame);
 
-function busy(on,m){$('#busy').classList.toggle('hidden', !on); if(m)$('#busyMsg').textContent=m;}
 function call(fn,...args){
  return new Promise((resolve,reject)=>{
-  if(window.parent===window){
-   reject(new Error('Aplikasi dibuka di luar Web App. Buka kembali melalui URL Web App Google Apps Script.'));
-   return;
-  }
   if(typeof fn!=='string'||!fn){reject(new Error('Nama fungsi server tidak valid.'));return;}
-  const id='sp_'+Date.now().toString(36)+'_'+(++bridgeSeq);
-  const timer=setTimeout(()=>{
-   bridgePending.delete(id);
-   reject(new Error('Tidak ada jawaban dari Google Apps Script selama 45 detik. Periksa deployment Web App dan koneksi internet.'));
-  },45000);
-  bridgePending.set(id,{resolve,reject,timer});
-  try {
-   window.parent.postMessage({type:'SATUPINTU_CALL',id,fn,args},'*');
-  } catch(err) {
-   clearTimeout(timer);bridgePending.delete(id);
-   reject(new Error('Gagal mengirim permintaan ke Apps Script: '+(err.message||err)));
-  }
+  bridgeReady.then(()=>{
+   const id='sp_'+Date.now().toString(36)+'_'+(++bridgeSeq);
+   const timer=setTimeout(()=>{
+    bridgePending.delete(id);
+    reject(new Error('Tidak ada jawaban dari Google Apps Script selama 45 detik. Periksa deployment Web App dan koneksi internet.'));
+   },45000);
+   bridgePending.set(id,{resolve,reject,timer});
+   try {
+    // Target '*' diperlukan karena HtmlService dapat mengalihkan iframe ke origin googleusercontent.
+    // Keamanan tetap dijaga dengan memeriksa event.source pada penerima dan origin induk di server.
+    bridgeFrame.contentWindow.postMessage({type:'SATUPINTU_CALL',id,fn,args},'*');
+   } catch(err) {
+    clearTimeout(timer);bridgePending.delete(id);
+    reject(new Error('Gagal mengirim permintaan ke Apps Script: '+(err.message||err)));
+   }
+  }).catch(reject);
  });
 }
 window.addEventListener('message',e=>{
- if(e.source!==window.parent)return;
+ if(e.source!==bridgeFrame.contentWindow)return;
  const m=e.data||{};
  if(!['SATUPINTU_RESULT','SATUPINTU_ERROR'].includes(m.type)||typeof m.id!=='string')return;
  const p=bridgePending.get(m.id);if(!p)return;
@@ -547,7 +545,7 @@ window.addEventListener('message',e=>{
  if(m.type==='SATUPINTU_ERROR')p.reject(new Error(m.message||'Kesalahan server Google Apps Script.'));
  else p.resolve(m.result);
 });
-async function api(fn,...a){const r=await call(fn,S.token,...a);if(r&&r.auth){doLogout(true);throw new Error('Sesi berakhir, silakan login kembali.')}if(!r||!r.ok)throw new Error((r&&r.msg)||'Terjadi kesalahan.');return r}
+async function api(fn,...a){const r=await call(fn,S.token,...a);if(r&&r.auth){doLogout(true);throw new Error('Sesi berakhir, silakan login kembali.')}if(!r||typeof r!=='object'||!r.ok)throw new Error((r&&r.msg)||'Server tidak mengembalikan hasil yang valid.');return r}
 
 function openModal(t,html,wide){
     const mbox=$('#mbox');
