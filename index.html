@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Satu Pintu - Dayah Babul Maghfirah</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Playfair+Display:wght@500;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              navy: '#112b52',       // Updated to match reference
+              navy2: '#205694',      // Gradient secondary
+              gold: '#f4c773',       // Updated gold
+              primary: '#103b99',    // Replaced green with blue matching main theme
+              'primary-dark': '#0a2364',
+              'primary-light': '#eff6ff',
+              neutral: '#f8fafc',    // Background Admin
+              dark: '#1e293b'
+            }
+          },
+          fontFamily: {
+            sans: ['Poppins', 'system-ui', 'sans-serif'],
+            serif: ['Playfair Display', 'serif'],
+            arabic: ['Amiri', 'serif']
+          }
+        }
+      }
+    }
+</script>
+<style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    /* Utilities & Fixes for existing JS logic */
+    [hidden] { display: none !important; }
+    
+    /* Loader Spinner */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { border: 3px solid rgba(16, 59, 153, 0.2); border-top-color: #103b99; border-radius: 50%; width: 36px; height: 36px; animation: spin 1s linear infinite; margin: 0 auto 12px; }
+
+    /* Table Styles for JS injection */
+    table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.875rem; }
+    th { background: #f8fafc; color: #475569; font-weight: 600; text-align: left; padding: 12px 16px; border-bottom: 1px solid #e2e8f0; white-space: nowrap; position: sticky; top: 0; z-index: 10; }
+    td { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; color: #334155; vertical-align: middle; }
+    tbody tr:hover { background: #f8fafc; }
+    
+    .rekap td, .rekap th { text-align: center; padding: 8px; font-size: 0.75rem; }
+    .rekap td:nth-child(2), .rekap th:nth-child(2) { text-align: left; white-space: nowrap; }
+
+    /* Custom Checkbox/Radio Chips */
+    .chip-container label { cursor: pointer; }
+    .chip-container input:checked + span { background-color: #103b99; color: white; border-color: #103b99; }
+    
+    /* Attendance Radios */
+    .att-radio input:checked + span.H { background: #10b981; color: white; border-color: #10b981; }
+    .att-radio input:checked + span.S { background: #f59e0b; color: white; border-color: #f59e0b; }
+    .att-radio input:checked + span.I { background: #3b82f6; color: white; border-color: #3b82f6; }
+    .att-radio input:checked + span.A { background: #ef4444; color: white; border-color: #ef4444; }
+
+
+    .welcome-marquee { width:100%; overflow:hidden; white-space:nowrap; margin-bottom:18px; }
+    .welcome-marquee span { display:inline-block; padding-left:100%; animation:welcome-scroll 40s linear infinite; color:#fff; font-weight:600; letter-spacing:.02em; }
+    .welcome-marquee:hover span { animation-play-state:paused; }
+    @keyframes welcome-scroll { from { transform:translateX(0); } to { transform:translateX(-100%); } }
+    @media (prefers-reduced-motion: reduce) { .welcome-marquee span { animation:none; padding-left:0; white-space:normal; } }
+    /* Hero Curved Shape */
+    .hero-curve { clip-path: polygon(0 0, 100% 0, 100% 85%, 50% 100%, 0 85%); }
+</style>
+</head>
+<body class="bg-brand-neutral text-slate-800 antialiased selection:bg-brand-gold selection:text-brand-navy">
+
+<!-- ===================== HALAMAN PUBLIK ===================== -->
+<div id="pub" class="min-h-screen bg-white">
+  
+  <!-- Navbar -->
+  <header class="fixed top-0 w-full z-50 transition-all duration-300 bg-[#0f358f]/95 backdrop-blur-md px-6 py-4 border-b border-white/10">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+        <div class="flex items-center gap-3 cursor-pointer group" onclick="showPub('home')">
+           <div class="flex items-center gap-3">
+    <img src="https://cdn.phototourl.com/member/2026-10-14-3d7b029b-1d76-4643-8716-33369ded29c5.png"
+         alt="Logo Dayah"
+         class="w-14 h-14 object-contain rounded-full">
+
+    <div>
+        <b class="font-sans text-white text-2xl block leading-tight tracking-wide font-bold">
+            Aplikasi Data Satu Pintu
+        </b>
+    </div>
+</div>
+        </div>
+        <button id="burger" class="md:hidden text-white" aria-label="Menu" onclick="document.getElementById('pnav').classList.toggle('hidden')">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+        <nav id="pnav" class="hidden absolute top-full left-0 w-full bg-[#0f358f] md:bg-transparent md:static md:w-auto md:flex items-center gap-6 px-6 py-4 md:p-0 flex-col md:flex-row shadow-xl md:shadow-none border-b border-white/10 md:border-none">
+            <a data-p="home" onclick="showPub('home')" class="nav-link w-full md:w-auto text-left py-2 text-white font-semibold cursor-pointer text-sm transition-colors">Beranda</a>
+            <a data-p="santri" onclick="showPub('santri')" class="nav-link w-full md:w-auto text-left py-2 text-blue-200 hover:text-white transition-colors cursor-pointer text-sm">Data Santri</a>
+            <a data-p="guru" onclick="showPub('guru')" class="nav-link w-full md:w-auto text-left py-2 text-blue-200 hover:text-white transition-colors cursor-pointer text-sm">Data Guru</a>
+            <a data-p="login" onclick="showPub('login')" class="w-full md:w-auto text-center px-6 py-2 bg-blue-100/10 hover:bg-blue-100/20 text-white rounded-full font-semibold transition-colors cursor-pointer text-sm border border-white/20">Login Admin</a>
+        </nav>
+    </div>
+  </header>
+
+  <!-- Beranda -->
+  <section id="p_home" class="min-h-screen flex flex-col bg-slate-50 pb-20 relative">
+    <!-- Hero Section -->
+    <div class="relative bg-gradient-to-br from-[#0a2364] via-[#103b99] to-[#1c55db] text-white pt-32 pb-48 px-6 lg:px-12 overflow-hidden">
+        <!-- Glow effects -->
+        <div class="absolute top-1/4 -left-32 w-96 h-96 bg-cyan-400/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute bottom-0 right-0 w-[500px] h-[500px] bg-blue-400/20 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between relative z-10 mt-10">
+            <!-- Text Content -->
+            <div class="lg:w-[55%] text-center lg:text-left mb-16 lg:mb-0 relative z-20">
+                <div class="welcome-marquee" aria-label="Selamat datang"><span>Assalamu'alaikum Wr.Wb | Ahlan Wa Sahlan | Selamat Datang Di Portal Digital Data Satu Pintu Dayah Babul Maghfirah | Mengintegrasikan Informasi, Menguatkan Silaturahmi, Dan Membangun Generasi Qur'ani.</span></div>
+                <h1 class="font-sans text-5xl md:text-6xl lg:text-[70px] font-bold leading-[1.1] mb-6 tracking-tight drop-shadow-md">Data Satu Pintu</h1>
+                <h1 class="font-sans text-5xl md:text-6xl lg:text-[70px] font-bold leading-[1.1] mb-6 tracking-tight drop-shadow-md">Babul Maghfirah</h1>
+                <p class="text-blue-100 text-lg md:text-xl mb-10 font-light max-w-lg mx-auto lg:mx-0 leading-relaxed">Sistem informasi manajemen terpadu untuk pendataan santri dan guru Dayah Babul Maghfirah secara real-time dan aman.</p>
+                
+                <!-- Feature List (Mimicking the reference image's inline features) -->
+                <div class="flex flex-wrap justify-center lg:justify-start gap-x-8 gap-y-4 mb-10 text-[15px] font-medium text-blue-50">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Terpusat
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> Keamanan Data
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> Real-time
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                    <button class="px-8 py-3 bg-white text-[#103b99] rounded-full font-bold hover:shadow-lg hover:bg-blue-50 transition-all shadow-blue-900/50 shadow-lg" onclick="showPub('santri')">
+                        Formulir Santri
+                    </button>
+                    <button class="px-8 py-3 bg-transparent text-white border-2 border-white/30 rounded-full font-bold hover:bg-white/10 transition-all" onclick="showPub('guru')">
+                        Formulir Guru
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Hero Illustration (Glowing Circle with floating elements) -->
+            <div class="lg:w-[45%] flex justify-center relative lg:justify-end mt-10 lg:mt-0">
+                <div class="relative w-[400px] h-[400px] sm:w-[520px] sm:h-[520px] rounded-full border-[4px] border-cyan-400/40 shadow-[0_0_80px_rgba(6,182,212,0.5)] flex items-center justify-center p-3 box-border bg-blue-900/20 backdrop-blur-sm z-10">
+                    <div id="hero-slider" class="w-full h-full relative rounded-full z-10 border-[6px] border-blue-900/30 overflow-hidden">
+                        <img src="https://cdn.phototourl.com/member/2026-11-10-40ba2ff7-847f-4c77-bb5c-27258b428a53.jpg" class="slide absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 opacity-100" alt="Sekolah 1">
+                        <img src="https://cdn.phototourl.com/member/2026-11-09-b9ff0ca7-43b0-4f03-be6b-f119e50ae1dc.jpg" class="slide absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 opacity-0" alt="Sekolah 2">
+                        <img src="https://cdn.phototourl.com/member/2026-11-09-088617c3-86d6-4831-b5a3-ca11ccd36634.jpg" class="slide absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 opacity-0" alt="Sekolah 3">
+                        <img src="https://cdn.phototourl.com/member/2026-11-09-7f3424b4-fb3b-4c47-80a8-69cd2ef7e4e3.jpg" class="slide absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 opacity-0" alt="Sekolah 4">
+                        <img src="https://cdn.phototourl.com/member/2026-11-09-bb7746d0-e6b0-4b82-b476-084b94f66c8b.jpg" class="slide absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 opacity-0" alt="Sekolah 5">
+                        <img src="https://cdn.phototourl.com/member/2026-11-10-451f1fb7-5037-46e0-817e-e9d63e6e6c5b.jpg" class="slide absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 opacity-0" alt="Sekolah 6">
+                        <img src="https://cdn.phototourl.com/member/2026-11-09-111c3ee0-3639-4d79-a45d-11e6468171c8.jpg" class="slide absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 opacity-0" alt="Sekolah 7">
+                          <img src="https://cdn.phototourl.com/member/2026-11-09-a8b85c82-7f1d-42eb-9a97-55e8a33566aa.jpg" class="slide absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 opacity-0" alt="Sekolah 8">
+                          <img src="https://cdn.phototourl.com/member/2026-11-10-0f4efa07-6a9f-454b-8f7e-11ea1932eaba.jpg" class="slide absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 opacity-0" alt="Sekolah 9">
+                          
+                    </div>
+                    
+                    <!-- Floating Icons -->
+                    <div class="absolute -top-4 left-16 w-14 h-14 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full border-2 border-white/20 flex items-center justify-center shadow-[0_10px_25px_rgba(0,0,0,0.3)] z-20 animate-bounce" style="animation-duration: 3s;">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                    </div>
+                    <div class="absolute top-1/4 -right-6 w-16 h-16 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-full border-2 border-white/20 flex items-center justify-center shadow-[0_10px_25px_rgba(0,0,0,0.3)] z-20 animate-bounce" style="animation-duration: 4s; animation-delay: 1s;">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <div class="absolute bottom-8 left-0 w-12 h-12 bg-gradient-to-br from-blue-400 to-indigo-400 rounded-full border-2 border-white/20 flex items-center justify-center shadow-[0_10px_25px_rgba(0,0,0,0.3)] z-20 animate-bounce" style="animation-duration: 3.5s; animation-delay: 0.5s;">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Cards Section (Matching "Featured Course" layout) -->
+    <div class="max-w-7xl mx-auto px-6 relative z-20 -mt-16 sm:-mt-24 lg:-mt-32 w-full">
+        <div class="flex flex-col xl:flex-row gap-8">
+            <!-- Left: 2 Vertical Cards -->
+            <div class="xl:w-[58%]">
+                <h3 class="font-bold text-slate-800 text-[22px] mb-6 pl-2 hidden md:block">&nbsp;</h3> 
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <!-- Card 1 -->
+                    <div class="bg-white rounded-[24px] p-4 shadow-[0_15px_40px_rgba(0,0,0,0.06)] border border-slate-100 flex flex-col hover:-translate-y-2 transition-transform duration-300">
+                        <div class="h-44 rounded-[16px] bg-blue-100 mb-5 overflow-hidden">
+                            <img src="https://cdn.phototourl.com/member/2026-11-09-49db4b4d-84cd-46bf-8e94-b32248750348.jpg" class="w-full h-full object-cover" alt="Santri">
+                        </div>
+                        <h4 class="font-bold text-slate-800 text-[17px] mb-2 px-1">Pendaftaran Santri</h4>
+                        <p class="text-slate-500 text-[13px] mb-5 px-1 flex-1 leading-relaxed">Isi formulir biodata lengkap untuk calon santri baru secara online.</p>
+                        <button class="w-[120px] mx-auto py-2 bg-[#103b99] text-white rounded-full text-[13px] font-semibold hover:bg-[#0a2364] transition-colors shadow-md shadow-blue-900/20" onclick="showPub('santri')">Buka Form</button>
+                    </div>
+                    <!-- Card 2 -->
+                    <div class="bg-white rounded-[24px] p-4 shadow-[0_15px_40px_rgba(0,0,0,0.06)] border border-slate-100 flex flex-col hover:-translate-y-2 transition-transform duration-300">
+                        <div class="h-44 rounded-[16px] bg-blue-100 mb-5 overflow-hidden">
+                            <img src="https://cdn.phototourl.com/member/2026-11-09-620d5f28-ac16-458c-b2fb-2c20ab6a263a.jpg" class="w-full h-full object-cover" alt="Guru">
+                        </div>
+                        <h4 class="font-bold text-slate-800 text-[17px] mb-2 px-1">Biodata Guru</h4>
+                        <p class="text-slate-500 text-[13px] mb-5 px-1 flex-1 leading-relaxed">Pembaruan data identitas dan status kepegawaian untuk dewan guru.</p>
+                        <button class="w-[120px] mx-auto py-2 bg-[#103b99] text-white rounded-full text-[13px] font-semibold hover:bg-[#0a2364] transition-colors shadow-md shadow-blue-900/20" onclick="showPub('guru')">Buka Form</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right: Dark Blue Panel (Calendar) -->
+            <div class="xl:w-[42%] mt-8 xl:mt-0">
+                <h3 class="font-bold text-slate-800 text-[22px] mb-6 pl-2 hidden xl:block">&nbsp;</h3>
+                <div class="bg-gradient-to-br from-[#103b99] to-[#0a2364] rounded-[24px] p-8 shadow-[0_20px_50px_rgba(16,59,153,0.25)] text-white relative overflow-hidden h-full flex flex-col">
+                    <!-- Blob decorative -->
+                    <div class="absolute top-0 right-0 w-48 h-48 bg-cyan-400/20 rounded-bl-[100px] pointer-events-none"></div>
+                    
+                    <div class="mb-5 relative z-10">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                            <div class="flex items-center gap-2">
+                                <select id="calendarMonth" aria-label="Pilih bulan" class="bg-white/10 border border-white/20 rounded-lg px-2 py-2 text-yellow-500 text-sm outline-none focus:ring-2 focus:ring-cyan-300">
+                                    <option value="0">Januari</option><option value="1">Februari</option><option value="2">Maret</option><option value="3">April</option><option value="4">Mei</option><option value="5">Juni</option><option value="6">Juli</option><option value="7">Agustus</option><option value="8">September</option><option value="9">Oktober</option><option value="10">November</option><option value="11">Desember</option>
+                                </select>
+                                <select id="calendarYear" aria-label="Pilih tahun" class="bg-white/10 border border-white/20 rounded-lg px-2 py-2 text-yellow-500  text-sm outline-none focus:ring-2 focus:ring-cyan-300"></select>
+                            </div>
+                            <div class="flex gap-2">
+                                <button id="calendarPrev" type="button" aria-label="Bulan sebelumnya" class="w-9 h-9 rounded-full border border-white/20 bg-white/5 flex items-center justify-center hover:bg-white/20 transition-colors">&lt;</button>
+                                <button id="calendarToday" type="button" class="px-3 h-9 rounded-full border border-white/20 bg-white/5 text-yellow-500 hover:bg-white/20 transition-colors">Hari ini</button>
+                                <button id="calendarNext" type="button" aria-label="Bulan berikutnya" class="w-9 h-9 rounded-full border border-white/20 bg-white/5 flex items-center justify-center hover:bg-white/20 transition-colors">&gt;</button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-7 text-center text-xs text-blue-200 font-medium mb-3 border-b border-white/10 pb-2"><div>Min</div><div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div></div>
+                        <div id="calendarDays" class="grid grid-cols-7 text-center text-sm gap-y-2 gap-x-1 font-medium" aria-label="Tanggal kalender"></div>
+                    </div>
+
+                    <div class="mt-auto relative z-10 pt-4 border-t border-white/10">
+                        <h5 class="text-sm font-semibold text-cyan-300 mb-1 flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg> Agenda Terdekat</h5>
+                        <p id="calendarAgenda" class="text-blue-100 text-[13px] leading-relaxed font-light">Pilih tanggal untuk melihat agenda.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  </section>
+
+  <!-- Form Santri -->
+  <section id="p_santri" class="hidden pt-32 pb-20 px-6 bg-slate-50 min-h-screen">
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden" id="wrapS">
+            <div class="bg-gradient-to-br from-[#0a2364] via-[#103b99] to-[#1c55db] text-white p-10 text-center relative overflow-hidden">
+                <div class="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'#ffffff\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]"></div>
+                <h2 class="font-sans font-bold text-3xl mb-2 relative z-10">Formulir Pendaftaran Santri Baru</h2>
+                <p class="text-brand-gold relative z-10">Lengkapi data dengan benar dan akurat</p>
+            </div>
+            <form id="formS" class="p-8 md:p-10" novalidate></form>
+        </div>
+    </div>
+  </section>
+
+  <!-- Form Guru -->
+  <section id="p_guru" class="hidden pt-32 pb-20 px-6 bg-slate-50 min-h-screen">
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden" id="wrapG">
+            <div class="bg-gradient-to-br from-[#0a2364] via-[#103b99] to-[#1c55db] text-white p-10 text-center relative overflow-hidden">
+                <div class="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'#ffffff\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]"></div>
+                <h2 class="font-sans font-bold text-3xl mb-2 relative z-10">Formulir Biodata Guru</h2>
+                <p class="text-brand-gold relative z-10">Pembaruan data dewan guru tahun 2026</p>
+            </div>
+            <form id="formG" class="p-8 md:p-10" novalidate></form>
+        </div>
+    </div>
+  </section>
+
+  <!-- Login Admin -->
+  <section id="p_login" class="hidden pt-32 pb-20 px-6 min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-[#0a2364] via-[#103b99] to-[#1c55db]">
+    <!-- Glow effects matching hero section -->
+    <div class="absolute top-1/4 -left-32 w-96 h-96 bg-cyan-400/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-0 right-0 w-[500px] h-[500px] bg-blue-400/20 rounded-full blur-3xl pointer-events-none"></div>
+    
+    <div class="w-full max-w-md relative z-10">
+        <div class="bg-[#0a2364]/40 backdrop-blur-xl rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-white/10 overflow-hidden">
+            <div class="p-8 pb-6 border-b border-white/10 text-center">
+                <div class="w-16 h-16 bg-white/10 border border-white/20 rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+                    <svg class="w-8 h-8 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                </div>
+                <h2 class="font-sans text-3xl text-white font-bold tracking-tight">Portal Admin</h2>
+                <p class="text-blue-200 text-sm mt-1 font-light">Masuk untuk mengelola sistem</p>
+            </div>
+            <form id="formL" class="p-8">
+                <div class="mb-5">
+                    <label for="lu" class="block text-sm font-medium text-blue-100 mb-2">Username</label>
+                    <input type="text" id="lu" autocomplete="username" required class="w-full px-4 py-3 bg-[#0a2364]/50 border border-blue-400/30 rounded-xl text-white placeholder-blue-300 focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition">
+                </div>
+                <div class="mb-6 relative">
+                    <label for="lp" class="block text-sm font-medium text-blue-100 mb-2">Kata Sandi</label>
+                    <div class="relative">
+                        <input type="password" id="lp" autocomplete="current-password" required class="w-full px-4 py-3 bg-[#0a2364]/50 border border-blue-400/30 rounded-xl text-white placeholder-blue-300 focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition pr-12">
+                        <button type="button" id="eye" class="absolute right-3 top-1/2 -translate-y-1/2 text-blue-300 hover:text-white p-2" aria-label="Lihat sandi">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                <div id="lerr" class="text-red-400 text-sm mb-4 text-center min-h-[20px]"></div>
+                <button class="w-full py-3.5 bg-white text-[#103b99] rounded-xl font-bold hover:bg-blue-50 transition-colors shadow-[0_10px_20px_rgba(0,0,0,0.2)]">Masuk Dashboard</button>
+            </form>
+        </div>
+        <div class="text-center mt-6">
+            <a onclick="showPub('home')" class="text-sm text-blue-200 hover:text-white cursor-pointer transition">← Kembali ke Beranda</a>
+        </div>
+    </div>
+  </section>
+  
+ <footer class="bg-[#0b2348] text-slate-300 border-t border-white/10">
+    <div class="max-w-7xl mx-auto px-6 lg:px-10 py-10">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div>
+                <h3 class="text-white font-bold text-base mb-4">Sosmed Dayah</h3>
+                <p class="text-sm leading-7 text-blue-100/75 mb-4">Ikuti informasi dan kegiatan Dayah Babul Maghfirah melalui media sosial.</p>
+                <div class="flex items-center gap-3">
+                    <a href="https://youtube.com/@dayahbabulmaghfirahtv?si=AaZ5eUO_Zs62LWiV" target="_blank" rel="noopener noreferrer" aria-label="YouTube Dayah" title="YouTube" class="w-10 h-10 rounded-full bg-white/10 hover:bg-red-600 text-white flex items-center justify-center transition-colors">
+                        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="currentColor" aria-hidden="true"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4l6.3 3.6-6.3 3.6Z"/></svg>
+                    </a>
+                    <a href="https://www.facebook.com/dayahbabulmaghfirah" target="_blank" rel="noopener noreferrer" aria-label="Facebook Dayah" title="Facebook" class="w-10 h-10 rounded-full bg-white/10 hover:bg-blue-600 text-white flex items-center justify-center transition-colors">
+                        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="currentColor" aria-hidden="true"><path d="M13.5 21v-8.2h2.8l.4-3.2h-3.2V7.5c0-.9.3-1.5 1.6-1.5h1.7V3.1c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3v2.3H7.3v3.2h2.8V21h3.4Z"/></svg>
+                    </a>
+                    <a href="https://www.instagram.com/dayahbabulmaghfirah?cplk=OWc0cDV3djJzc3lp" target="_blank" rel="noopener noreferrer" aria-label="Instagram Dayah" title="Instagram" class="w-10 h-10 rounded-full bg-white/10 hover:bg-pink-600 text-white flex items-center justify-center transition-colors">
+                        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+                    </a>
+                    <a href="https://www.tiktok.com/@dayahbabulmaghfirah?_r=1&_t=ZS-9AgG9ctp0NS" target="_blank" rel="noopener noreferrer" aria-label="TikTok Dayah" title="TikTok" class="w-10 h-10 rounded-full bg-white/10 hover:bg-black text-white flex items-center justify-center transition-colors">
+                        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="currentColor" aria-hidden="true"><path d="M19.6 7.2a6.8 6.8 0 0 1-4.2-1.4v8.1a6.1 6.1 0 1 1-5.3-6.1v3.3a2.8 2.8 0 1 0 2 2.7V2h3.3c.2 2 1.6 3.6 4.2 3.9v1.3Z"/></svg>
+                    </a>
+                </div>
+            </div>
+            <div>
+                <h3 class="text-white font-bold text-base mb-4">Layanan Data</h3>
+                <ul class="space-y-3 text-sm">
+                    <li><a href="#" onclick="showPub('santri');return false" class="group flex items-center gap-3 hover:text-white transition-colors">
+                        <span class="w-9 h-9 rounded-lg bg-white/10 group-hover:bg-blue-500/30 flex items-center justify-center transition-colors"><svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M20 8v6m3-3h-6"/></svg></span>
+                        <span>Data / Formulir Santri</span></a></li>
+                    <li><a href="#" onclick="showPub('guru');return false" class="group flex items-center gap-3 hover:text-white transition-colors">
+                        <span class="w-9 h-9 rounded-lg bg-white/10 group-hover:bg-blue-500/30 flex items-center justify-center transition-colors"><svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 8h20v12H2zM2 8l10-5 10 5M8 13h8M8 17h5"/></svg></span>
+                        <span>Data / Formulir Guru</span></a></li>
+                    <li><a href="#" onclick="showPub('login');return false" class="group flex items-center gap-3 hover:text-white transition-colors">
+                        <span class="w-9 h-9 rounded-lg bg-white/10 group-hover:bg-blue-500/30 flex items-center justify-center transition-colors"><svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="10" width="18" height="11" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3m-5 4v3"/></svg></span>
+                        <span>Login Admin</span></a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-white font-bold text-base mb-4">Informasi Kontak Sekretariat</h3>
+                <p class="text-sm leading-7 text-blue-100/75">Sekretariat Dayah Terpadu Babul Maghfirah</p>
+                <p class="text-sm leading-7 text-blue-100/75">Jln. Blang Bintang Lama, Pasar Cot Keueng, Lam Alu Cut, Kuta Baro, Aceh Besar.</p>
+                <a href="tel:085296982771" class="inline-flex items-center gap-2 mt-3 text-sm text-white hover:text-blue-300 transition-colors">
+                    <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.4 19.4 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7l.5 3a2 2 0 0 1-.6 1.9L7.1 10.5a16 16 0 0 0 6.4 6.4l1.9-1.9a2 2 0 0 1 1.9-.6l3 .5a2 2 0 0 1 1.7 2Z"/></svg>
+                    0852-6090-0400
+                </a>
+                <a href="https://wa.me/6285296982771" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 mt-2 text-xs text-blue-200 hover:text-white transition-colors">Hubungi melalui WhatsApp</a>
+            </div>
+        </div>
+        <div class="border-t border-white/10 mt-8 pt-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-blue-100/70 text-center"><span>© 2026 Data Satu Pintu Dayah Babul Maghfirah.</span><span>Dibuat oleh Yulidatullah, S.Pd., Gr.</span></div>
+    </div>
+ </footer>
+</div>
+
+<!-- ===================== ADMIN DASHBOARD ===================== -->
+<div id="admin" class="hidden h-screen bg-brand-neutral flex overflow-hidden">
+  
+  <!-- Sidebar -->
+  <aside id="side" class="w-64 bg-gradient-to-br from-[#0a2364] to-[#103b99] text-white flex-shrink-0 flex flex-col m-4 mr-0 rounded-2xl shadow-xl transition-transform duration-300 absolute md:static z-40 h-[calc(100vh-32px)] -translate-x-full md:translate-x-0">
+    <div class="p-6 border-b border-white/10 flex items-center justify-between">
+        <div>
+            <b class="font-sans text-lg block leading-tight font-bold">Data Satu Pintu</b>
+            <small class="text-blue-200 opacity-80 text-xs font-medium">Panel Admin</small>
+        </div>
+        <button id="close-side" class="md:hidden text-white" onclick="document.getElementById('side').classList.remove('translate-x-0')">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+    </div>
+    
+    <div class="flex-1 overflow-y-auto p-4 space-y-1" id="menu">
+        <!-- Dinamis via JS -->
+    </div>
+    
+    <div class="p-4 border-t border-white/10">
+        <button class="w-full flex items-center justify-center gap-2 py-3 bg-white/10 hover:bg-white/20 rounded-xl transition text-sm font-medium" onclick="doLogout()">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg> Keluar
+        </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 flex flex-col h-screen min-w-0 overflow-hidden relative">
+    
+    <!-- Topbar -->
+    <div class="flex items-center justify-between px-8 py-5 bg-white/50 backdrop-blur-sm border-b border-slate-200 z-30">
+        <div class="flex items-center gap-4">
+            <button id="ham" class="md:hidden text-slate-600 hover:text-brand-primary" onclick="document.getElementById('side').classList.toggle('translate-x-0')">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+            <h1 id="ttl" class="font-sans text-2xl font-bold text-slate-800">Dashboard</h1>
+        </div>
+        
+        <div class="flex items-center gap-4">
+            <!-- Mock Search Bar (Visual Only matching reference) -->
+            <div class="hidden lg:flex items-center bg-white border border-slate-200 rounded-full px-4 py-2 w-64 focus-within:ring-2 focus-within:ring-brand-primary/20">
+                <svg class="w-4 h-4 text-slate-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input type="text" placeholder="Search..." class="bg-transparent border-none outline-none text-sm w-full text-slate-600 placeholder-slate-400">
+            </div>
+            
+            <div class="flex items-center gap-3 pl-4 border-l border-slate-200">
+                <div class="text-right hidden sm:block">
+                    <div class="text-sm font-medium text-slate-700">Admin</div>
+                    <div class="text-xs text-brand-primary font-semibold" id="who"></div>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-brand-primary/10 flex items-center justify-center text-brand-primary font-bold border border-brand-primary/20">
+                    A
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scrollable Content Area -->
+    <div id="view" class="flex-1 overflow-y-auto p-4 md:p-8 pb-24">
+        <!-- Konten Dashboard Dimuat di Sini -->
+    </div>
+  </main>
+</div>
+
+<!-- ===================== MODALS & OVERLAYS ===================== -->
+<div id="modal" class="hidden fixed inset-0 bg-brand-navy/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden transform transition-all" id="mbox">
+        <!-- Konten Modal Dimuat Dinamis -->
+    </div>
+</div>
+
+<div id="busy" class="hidden fixed inset-0 bg-white/80 backdrop-blur-sm z-[110] flex items-center justify-center">
+    <div class="bg-white border border-slate-100 p-8 rounded-2xl shadow-xl text-center min-w-[200px]">
+        <div class="spinner"></div>
+        <span id="busyMsg" class="text-sm font-medium text-slate-600">Memproses…</span>
+    </div>
+</div>
+
+<div id="toast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-full text-sm shadow-xl z-[120] transition-opacity duration-300 font-medium border border-slate-700"></div>
+
+<script>
+/* ===================== INISIALISASI & UI SCRIPT ===================== */
+// SlideShow Logic untuk Halaman Utama
+document.addEventListener('DOMContentLoaded', () => {
+    const slides = document.querySelectorAll('#hero-slider .slide');
+    if(slides.length > 1) {
+        let current = 0;
+        setInterval(() => {
+            slides[current].classList.replace('opacity-100', 'opacity-0');
+            current = (current + 1) % slides.length;
+            slides[current].classList.replace('opacity-0', 'opacity-100');
+        }, 4000);
+    }
+});
+
+/* Update CSS classes di state navbar saat scroll */
+window.addEventListener('scroll', () => {
+    const header = document.querySelector('header');
+    if(window.scrollY > 50) {
+        header.classList.add('shadow-md');
+        header.classList.remove('bg-[#0f358f]/95');
+        header.classList.add('bg-[#0f358f]');
+    } else {
+        header.classList.remove('shadow-md');
+        header.classList.remove('bg-[#0f358f]');
+        header.classList.add('bg-[#0f358f]/95');
+    }
+});
+
+/* ===================== LOGIKA BAWAAN APLIKASI ===================== */
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fd=v=>{if(!v)return '';const m=String(v).match(/^(\d{4})-(\d{2})-(\d{2})/);return m?m[3]+'-'+m[2]+'-'+m[1]:v};
+const rp=n=>'Rp '+(Number(n)||0).toLocaleString('id-ID');
+const num=v=>{const n=parseFloat(String(v||'').replace(/[^\d.-]/g,''));return isNaN(n)?0:n};
+const nk=v=>String(v||'').trim().toUpperCase();
+const uniq=a=>[...new Set(a.filter(Boolean))].sort((x,y)=>x.localeCompare(y,'id'));
+const S={token:localStorage.getItem('satupintu_admin_token')||'',santri:[],guru:[],absensi:[]};
+const bridgePending=new Map();
+let bridgeSeq=0;
+let tt;
+
+function toast(m,t){
+    const e=$('#toast');
+    e.textContent=m;
+    if(t==='err') {
+        e.classList.replace('bg-slate-800', 'bg-red-600');
+        e.classList.replace('border-slate-700', 'border-red-500');
+    } else {
+        e.classList.replace('bg-red-600', 'bg-slate-800');
+        e.classList.replace('border-red-500', 'border-slate-700');
+    }
+    e.classList.remove('hidden');
+    clearTimeout(tt);
+    tt=setTimeout(()=>e.classList.add('hidden'),3800);
+}
+
+function busy(on,m){$('#busy').classList.toggle('hidden', !on); if(m)$('#busyMsg').textContent=m;}
+function call(fn,...args){
+ return new Promise((resolve,reject)=>{
+  if(window.parent===window){reject(new Error('Aplikasi harus dibuka melalui URL Web App Google Apps Script.'));return;}
+  const id='sp_'+Date.now().toString(36)+'_'+(++bridgeSeq);
+  const timer=setTimeout(()=>{bridgePending.delete(id);reject(new Error('Koneksi ke server terputus atau terlalu lama. Muat ulang halaman dan coba kembali.'));},45000);
+  bridgePending.set(id,{resolve,reject,timer});
+  window.parent.postMessage({type:'SATUPINTU_CALL',id,fn,args},'*');
+ });
+}
+window.addEventListener('message',e=>{
+ if(e.source!==window.parent)return;
+ const m=e.data||{};if(!['SATUPINTU_RESULT','SATUPINTU_ERROR'].includes(m.type)||!m.id)return;
+ const p=bridgePending.get(m.id);if(!p)return;
+ clearTimeout(p.timer);bridgePending.delete(m.id);
+ if(m.type==='SATUPINTU_ERROR')p.reject(new Error(m.message||'Kesalahan server.'));else p.resolve(m.result);
+});
+async function api(fn,...a){const r=await call(fn,S.token,...a);if(r&&r.auth){doLogout(true);throw new Error('Sesi berakhir, silakan login kembali.')}if(!r||!r.ok)throw new Error((r&&r.msg)||'Terjadi kesalahan.');return r}
+
+function openModal(t,html,wide){
+    const mbox=$('#mbox');
+    mbox.className=`bg-white rounded-3xl w-full ${wide?'max-w-4xl':'max-w-2xl'} shadow-2xl overflow-hidden`;
+    mbox.innerHTML=`
+        <div class="flex justify-between items-center px-8 py-5 border-b border-slate-100 bg-slate-50/50">
+            <h3 class="font-sans font-bold text-xl text-slate-800">${esc(t)}</h3>
+            <button aria-label="Tutup" onclick="closeModal()" class="text-slate-400 hover:text-red-500 transition bg-white rounded-full p-1 border border-slate-200">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div class="p-8">${html}</div>`;
+    $('#modal').classList.remove('hidden');
+}
+function closeModal(){$('#modal').classList.add('hidden');$('#mbox').innerHTML=''}
+const slug=s=>s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+// Tanggal cetak otomatis mengikuti tanggal lokal Indonesia (WIB).
+function tanggalCetak(){return new Intl.DateTimeFormat('id-ID',{day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Jakarta'}).format(new Date());}
+
+// Ekspor tabel: data disusun sebagai array-of-arrays agar setiap nilai masuk ke kolom tersendiri.
+function xlsx(filename, head, body){
+ if(!window.XLSX)return toast('Pustaka Excel belum dimuat. Muat ulang halaman.','err');
+ const rows=[head||[],...(body||[])].map(r=>(r||[]).map(v=>v==null?'':String(v)));
+ const ws=XLSX.utils.aoa_to_sheet(rows); const n=Math.max(1,...rows.map(r=>r.length));
+ ws['!cols']=Array.from({length:n},(_,i)=>({wch:Math.min(38,Math.max(10,...rows.map(r=>String(r[i]||'').length+2)))}));
+ ws['!autofilter']={ref:XLSX.utils.encode_range({s:{r:0,c:0},e:{r:Math.max(0,rows.length-1),c:n-1}})};
+ const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Data');XLSX.writeFile(wb,(filename||'data')+'.xlsx',{compression:true});
+}
+function pdf(filename,title,head,body){
+ if(!window.jspdf||!window.jspdf.jsPDF)return toast('Pustaka PDF belum dimuat. Muat ulang halaman.','err');
+ const d=new jspdf.jsPDF({orientation:(head||[]).length>6?'landscape':'portrait',unit:'mm',format:'a4'});
+ d.setFont('helvetica','bold');d.setFontSize(14);d.text(String(title||'Laporan'),d.internal.pageSize.getWidth()/2,15,{align:'center'});
+ d.autoTable({head:[head||[]],body:body||[],startY:22,theme:'grid',styles:{fontSize:8,cellPadding:2,overflow:'linebreak'},headStyles:{fillColor:[16,59,153],textColor:255},margin:{left:10,right:10,bottom:12}});
+ d.save((filename||'laporan')+'.pdf');
+}
+function printDoc(title,html,landscape){
+ const w=window.open('','_blank');if(!w){toast('Izinkan pop-up browser untuk mencetak.','err');return;}
+ w.document.open();w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>
+ @page{size:A4 ${landscape?'landscape':'portrait'};margin:10mm}*{box-sizing:border-box}body{font:10px Arial,sans-serif;color:#111;margin:0}.head{text-align:center;border-bottom:3px double #111;padding-bottom:7px;margin-bottom:9px}.yayasan{font-size:13px;font-weight:bold}.dayah{font-size:16px;font-weight:bold;margin-top:4px}.alamat{font-size:9px;margin-top:3px}.title{text-align:center;font-weight:bold;font-size:13px;margin:10px 0}.sec{font-weight:bold;border:1px solid #555;background:#eee;padding:4px;margin:7px 0 3px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:3px 12px}.field{display:grid;grid-template-columns:145px 8px 1fr;min-height:16px;align-items:end}.field .val{border-bottom:1px dotted #777;min-height:14px;overflow-wrap:anywhere;padding-left:3px}.full{grid-column:1/-1}.sign{display:flex;justify-content:space-between;margin-top:24px;text-align:center}.sign>div{width:42%}.space{height:52px}.photo{float:right;border:1px solid #555;width:25mm;height:32mm;display:grid;place-items:center;color:#777}.tbl{width:100%;border-collapse:collapse;font-size:8px}.tbl th,.tbl td{border:1px solid #222;padding:4px 3px}.tbl th{background:#eee;text-align:center}.meta{margin:8px 0}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+ </style></head><body>${html}<script>window.onload=()=>setTimeout(()=>window.print(),350);<\/script></body></html>`);w.document.close();
+}
+const pf=(l,v,full)=>`<div class="field ${full?'full':''}"><span>${esc(l)}</span><b>:</b><span class="val">${esc(v||'')}</span></div>`;
+function psec(t,a){return `<div class="sec">${t}</div><div class="grid">${a.join('')}</div>`;}
+function printSantri(s){
+ const parent=(p,t)=>psec(t,[pf('Nama',s[p+'Nama']),pf('Tempat, Tanggal Lahir',s[p+'Ttl']),pf('NIK',s[p+'Nik']),pf('Pendidikan Terakhir',s[p+'Pend']),pf('Pekerjaan',s[p+'Pekerjaan']),pf('Penghasilan / Bulan',s[p+'Penghasilan']),pf('No Telp / HP',s[p+'Hp']),pf('Status',s[p+'Alm']==='Ya'?'Meninggal':'')]);
+ const html=`<div class="head"><div class="yayasan">YAYASAN PERGURUAN ISLAM BABUL MAGHFIRAH</div><div class="dayah">DAYAH TERPADU BABUL MAGHFIRAH</div><div class="alamat">Jln. Blang Bintang Lama, Pasar Cot Keueng, Lam Alu Cut - Kuta Baro - Aceh Besar Telp (0651) 8012850</div></div><div class="title">FORMULIR PENDAFTARAN CALON SANTRI BARU</div>
+ ${psec('I. Biodata Diri',[pf('Nama Lengkap (Sesuai Ijazah)',s.nama,true),pf('Nomor Induk Santri (NIS)',s.nis),pf('Nomor Induk Siswa Nasional (NISN)',s.nisn),pf('NIK',s.nik),pf('Nomor Kartu Keluarga (KK)',s.kk),pf('Kewarganegaraan',s.kewarganegaraan),pf('Jenis Kelamin',s.jk),pf('Tempat Lahir',s.tempatLahir),pf('Tanggal Lahir',fd(s.tglLahir)),pf('Anak Ke / Dari Bersaudara',(s.anakKe||'')+' / '+(s.dariSaudara||'')),pf('Status',s.status),pf('Golongan Darah',s.golDarah),pf('Tinggi / Berat Badan',(s.tb||'')+' cm / '+(s.bb||'')+' kg'),pf('Tanggal Masuk Sekolah',fd(s.tglMasuk)),pf('Diterima di Kelas',(s.kelasDiterima||'')+' '+(s.statusDaftar||'')),pf('Wali Kamar (Pengasuh)',s.waliKamar),pf('No Penerima KPS / PKH / KIP',s.noKps)])}
+ ${psec('II. Asal Sekolah',[pf('Nama Sekolah',s.namaSekolah,true),pf('NPSN',s.npsn),pf('Alamat Sekolah',s.alamatSekolah,true),pf('Tahun Tamat Sekolah',s.tahunTamat),pf('No Ijazah',s.noIjazah),pf('Telp / HP Sekolah',s.telpSekolah)])}
+ ${parent('ayah','III-A. Biodata Ayah')}${parent('ibu','III-B. Biodata Ibu')}
+ ${psec('III-C. Alamat Tempat Tinggal (Sesuai KK)',[pf('Jalan',s.jalan),pf('Desa',s.desa),pf('Kecamatan',s.kecamatan),pf('Kabupaten',s.kabupaten),pf('Provinsi',s.provinsi),pf('Negara',s.negara),pf('Kode Pos',s.kodePos)])}
+ ${parent('wali','III-D. Biodata Wali Santri')}${psec('Alamat Wali Santri',[pf('Hubungan Keluarga',s.waliHubungan),pf('Jalan',s.waliJalan),pf('Desa',s.waliDesa),pf('Kecamatan',s.waliKec),pf('Kabupaten',s.waliKab)])}
+ <div class="sign"><div>Menyetujui<br>Orang Tua / Wali<div class="space"></div>(${esc(s.ortuNama||'')})</div><div>Aceh Besar, ${tanggalCetak()}<br>Pendaftar<div class="space"></div>(${esc(s.pendaftarNama||s.nama||'')})</div></div>`;
+ printDoc('Formulir Pendaftaran Santri - '+(s.nama||''),html,false);
+}
+function printGuru(g){
+ const html=`<div class="head"><div class="yayasan">YAYASAN PERGURUAN ISLAM BABUL MAGHFIRAH</div><div class="dayah">DAYAH TERPADU BABUL MAGHFIRAH</div><div class="alamat">Jln. Blang Bintang Lama, Pasar Cot Keueng, Lam Alue Cut - Kuta Baro - Aceh Besar Telp (0651) 581020</div></div><div class="title">BIODATA GURU</div><div class="photo">Pas Foto</div><div class="grid">${[pf('Nomor Induk Yayasan',g.niy),pf('Nama',g.nama,true),pf('No KK',g.kk),pf('Nomor Unik Pendidik dan Tenaga Kependidikan',g.nuptk),pf('No. KTP',g.nik),pf('Jenis Kelamin',g.jk),pf('Tempat Lahir',g.tempatLahir),pf('Tanggal Lahir',fd(g.tglLahir)),pf('Nama Ayah',g.namaAyah),pf('Nama Ibu',g.namaIbu),pf('Status Perkawinan',g.statusKawin),pf('Status Pegawai',g.statusPegawai),pf('Tanggal Mulai Tugas',fd(g.tglMulai)),pf('Pelajaran / Bidang Yang Diampu',[g.mapel1,g.mapel2,g.mapel3].filter(Boolean).join('; '),true),pf('Pendidikan Terakhir',g.pendTerakhir),pf('Nama Perguruan Tinggi',g.perguruanTinggi,true),pf('Jurusan',g.jurusan),pf('Tahun Lulus',g.tahunLulus),pf('No HP',g.hp)].join('')}</div><div class="sign"><div></div><div>Aceh Besar, ${tanggalCetak()}<br>Pemohon<div class="space"></div>(${esc(g.namaPemohon||g.nama||'')})</div></div>`;
+ printDoc('Biodata Guru - '+(g.nama||''),html,false);
+}
+const ROOM_EXPORT_HEAD=['No.','NAMA SANTRI','L/P','TTL','NAMA AYAH','No. HP AYAH','NAMA IBU','No. HP IBU','ALAMAT','PENGASUH KAMAR'];
+function roomExportBody(group,records){
+ return sorted(Array.isArray(records)?records:[]).map((s,i)=>[
+  i+1,s.nama||'',s.jk==='Laki-laki'?'L':s.jk==='Perempuan'?'P':'',
+  [s.tempatLahir,fd(s.tglLahir)].filter(Boolean).join(', '),
+  s.ayahNama||'',s.ayahHp||'',s.ibuNama||'',s.ibuHp||'',
+  [s.jalan,s.desa,s.kecamatan,s.kabupaten].filter(Boolean).join(', '),
+  s.waliKamar||group
+ ]);
+}
+function printRoom(group,records){
+ const data=sorted(Array.isArray(records)?records:[]);
+ const rows=roomExportBody(group,data).map(r=>`<tr><td style="text-align:center">${r[0]}</td>${r.slice(1).map((v,i)=>`<td ${i===1?'style="text-align:center"':''}>${esc(v)}</td>`).join('')}</tr>`).join('');
+ const html=`<div class="head"><div class="yayasan">YAYASAN PERGURUAN ISLAM BABUL MAGHFIRAH</div><div class="dayah">DAYAH TERPADU BABUL MAGHFIRAH</div></div><div class="title">DATA PERKAMAR</div><div class="meta"><b>Pengasuh Kamar:</b> ${esc(group)} &nbsp; <b>Jumlah Santri:</b> ${data.length}</div><table class="tbl"><thead><tr>${ROOM_EXPORT_HEAD.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows||'<tr><td colspan="10" style="text-align:center">Belum ada santri</td></tr>'}</tbody></table>`;
+ printDoc('Data Perkamar - '+group,html,true);
+}
+function exportRoomExcel(group,records){
+ if(!records.length)return toast('Tidak ada data untuk diekspor.','err');
+ xlsx(slug('data-perkamar-'+group),ROOM_EXPORT_HEAD,roomExportBody(group,records));
+}
+function exportRoomPdf(group,records){
+ if(!records.length)return toast('Tidak ada data untuk diekspor.','err');
+ if(!window.jspdf||!window.jspdf.jsPDF)return toast('Pustaka PDF belum dimuat. Muat ulang halaman.','err');
+ const d=new jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+ d.setFont('helvetica','bold');d.setFontSize(13);
+ d.text('YAYASAN PERGURUAN ISLAM BABUL MAGHFIRAH',148.5,12,{align:'center'});
+ d.setFontSize(14);d.text('DAYAH TERPADU BABUL MAGHFIRAH',148.5,19,{align:'center'});
+ d.setFontSize(12);d.text('DATA PERKAMAR',148.5,27,{align:'center'});
+ d.setFont('helvetica','normal');d.setFontSize(9);
+ d.text('Pengasuh Kamar: '+String(group),12,34);
+ d.text('Jumlah Santri: '+records.length,12,40);
+ d.autoTable({
+  head:[ROOM_EXPORT_HEAD],body:roomExportBody(group,records),startY:44,
+  theme:'grid',styles:{fontSize:7,cellPadding:2,overflow:'linebreak',valign:'middle'},
+  headStyles:{fillColor:[238,238,238],textColor:[0,0,0],halign:'center',fontStyle:'bold'},
+  columnStyles:{0:{cellWidth:8,halign:'center'},1:{cellWidth:36},2:{cellWidth:8,halign:'center'},3:{cellWidth:26},4:{cellWidth:30},5:{cellWidth:20},6:{cellWidth:30},7:{cellWidth:20},8:{cellWidth:52},9:{cellWidth:37}},
+  margin:{left:10,right:10,bottom:12},showHead:'everyPage'
+ });
+ d.save(slug('data-perkamar-'+group)+'.pdf');
+}
+
+
+/* ===================== SKEMA FORMULIR ===================== */
+const KELAS=['VII-A','VII-B','VIII-A','VIII-B','IX-A','IX-B','X-A','X-B','XI-A','XI-B','XII-A','XII-B','XII-C'];
+const PENGASUH=['Ustad Muhammad Agung','Ustad Khalil Ibral','Ustad Abdurrahman Saragih','Ustad Muhammad Irfan','Ustad Musafir Aulia','Ustazah Sella Ovitayanti','Ustazah Intan Darli','Ustazah Rossi Sartika','Ustazah Wardah','Ustadzah Cut Annisa Ulfitrah','Ustazah Windi Alhafiza Rambe','Ustazah Hafizah','Ustazah Syifa','Ustazah Lisiyana Feranti'];
+const PEK=['Petani/Nelayan','Karyawan/Pegawai','TNI/Polri/PNS','Pedagang Kecil','TKI','Wiraswasta','Pengangguran','Pensiunan','Pedagang Besar','Sudah Meninggal','Karyawan Swasta','Wirausaha','Karyawan BUMN','Buruh'];
+const PEKI=PEK.map(x=>x==='Pedagang Kecil'?'Ibu Rumah Tangga':x);
+const ortu=(p,n,pek,alm)=>[
+ {k:p+'Nama',l:'Nama Lengkap '+n,req:p!=='wali'},{k:p+'Alm',t:'check',l:'Status',c:alm},{k:p+'Ttl',l:'Tempat, Tanggal Lahir'},{k:p+'Nik',l:'Nomor Induk Kependudukan (NIK)'},{k:p+'Pend',l:'Pendidikan Terakhir',t:'select',o:['SD','SMP','SMA','D3','S1','S2','S3']},{k:p+'Pekerjaan',l:'Pekerjaan '+n,t:'select',o:pek},{k:p+'Penghasilan',l:'Penghasilan per Bulan',t:'select',o:['Rp 0 - Rp 500.000','Rp 500.000 - Rp 1.500.000','Rp 2.000.000 - Rp 5.000.000','Rp 5.000.000 - Rp 20.000.000']},{k:p+'Hp',l:'Nomor Telepon/HP',t:'tel'}];
+const SS=[
+{t:'I. Biodata Diri Calon Santri',f:[{k:'tahunPelajaran',l:'Tahun Pelajaran',d:'2026/2027',req:1},{k:'nama',l:'Nama Lengkap (sesuai ijazah)',req:1},{k:'nis',l:'Nomor Induk Santri (NIS)'},{k:'nisn',l:'Nomor Induk Siswa Nasional (NISN)',req:1},{k:'nik',l:'Nomor Induk Kependudukan (NIK)',req:1},{k:'kk',l:'Nomor Kartu Keluarga (KK)',req:1},{k:'kewarganegaraan',l:'Kewarganegaraan',d:'Indonesia'},{k:'jk',l:'Jenis Kelamin',t:'radio',o:['Laki-laki','Perempuan'],req:1},{k:'tempatLahir',l:'Tempat Lahir',req:1},{k:'tglLahir',l:'Tanggal Lahir',t:'date',req:1},{k:'anakKe',l:'Anak ke',t:'number'},{k:'dariSaudara',l:'Dari … bersaudara',t:'number'},{k:'status',l:'Status',t:'radio',o:['Yatim','Piatu','Yatim Piatu','Bukan Yatim/Piatu'],w:'full'},{k:'golDarah',l:'Golongan Darah',t:'radio',o:['A','B','AB','O']},{k:'tb',l:'Tinggi Badan (cm)',t:'number'},{k:'bb',l:'Berat Badan (kg)',t:'number'},{k:'tglMasuk',l:'Tanggal Masuk Sekolah',t:'date'},{k:'kelasDiterima',l:'Diterima di Kelas',t:'radio',o:['SMP','SMA']},{k:'kelasSekarang',l:'Kelas Saat Ini',t:'select',o:KELAS},{k:'statusDaftar',l:'Status Pendaftaran',t:'radio',o:['Santri Baru','Pindahan']},{k:'waliKamar',l:'Wali Kamar (Pengasuh)',t:'select',o:PENGASUH},{k:'noKps',l:'Nomor Penerima KPS/PKH/KIP'}]},
+{t:'II. Data Asal Sekolah',f:[{k:'namaSekolah',l:'Nama Sekolah Asal'},{k:'npsn',l:'Nomor Pokok Sekolah Nasional (NPSN)'},{k:'alamatSekolah',l:'Alamat Sekolah',t:'ta',w:'full'},{k:'tahunTamat',l:'Tahun Tamat Sekolah',t:'number'},{k:'noIjazah',l:'Nomor Ijazah'},{k:'telpSekolah',l:'Nomor Telepon Sekolah',t:'tel'}]},
+{t:'III-A. Data Ayah',f:ortu('ayah','Ayah',PEK,'Almarhum')},{t:'III-B. Data Ibu',f:ortu('ibu','Ibu',PEKI,'Almarhumah')},
+{t:'III-C. Alamat Tempat Tinggal',f:[{k:'negara',l:'Negara',d:'Indonesia'},{k:'provinsi',l:'Provinsi',t:'region',region:'province'},{k:'kabupaten',l:'Kabupaten/Kota',t:'region',region:'regency'},{k:'kecamatan',l:'Kecamatan',t:'region',region:'district'},{k:'desa',l:'Desa/Kelurahan',t:'region',region:'village'},{k:'jalan',l:'Jalan/Dusun'},{k:'kodePos',l:'Kode Pos'}]},
+{t:'III-D. Biodata Wali Santri',f:ortu('wali','Wali',PEK,'Almarhum').concat([{k:'waliHubungan',l:'Hubungan dengan Calon Santri'},{k:'waliNegara',l:'Negara',d:'Indonesia'},{k:'waliProvinsi',l:'Provinsi',t:'region',region:'province'},{k:'waliKab',l:'Kabupaten/Kota',t:'region',region:'regency'},{k:'waliKec',l:'Kecamatan',t:'region',region:'district'},{k:'waliDesa',l:'Desa/Kelurahan',t:'region',region:'village'},{k:'waliJalan',l:'Jalan/Dusun'},{k:'waliKodePos',l:'Kode Pos'}])},
+{t:'Unggah Berkas',note:'Unggah hasil scan/foto (PDF, JPG, PNG) maksimal 4 MB per berkas.',f:[{k:'berkasKtp',l:'KTP Ayah & Ibu',t:'file'},{k:'berkasAkta',l:'Akta Kelahiran',t:'file'},{k:'berkasIjazah',l:'Ijazah / SKL',t:'file'},{k:'berkasNisn',l:'Kartu NISN',t:'file'},{k:'berkasKk',l:'Kartu Keluarga',t:'file'},{k:'berkasFoto',l:'Pas Photo Warna',t:'file'},{k:'berkasBpjs',l:'Kartu BPJS/ASKES',t:'file'}]},
+{t:'Persetujuan',note:'Saya menyatakan bahwa seluruh data yang diisi adalah benar.',f:[{k:'setuju',t:'check',l:'Persetujuan',c:'Saya menyetujui pernyataan',req:1,w:'full'},{k:'ortuNama',l:'Nama Orang Tua/Wali',req:1},{k:'pendaftarNama',l:'Nama Calon Santri',req:1}]},
+{t:'Administrasi (Admin)',admin:1,f:[{k:'statusSantri',l:'Status Santri',t:'select',o:['Aktif','Alumni','Alumnus'],d:'Aktif'},{k:'tahunKeluar',l:'Tahun Keluar',t:'number'}]}
+];
+const SG=[
+{t:'I. Identitas Guru',f:[{k:'niy',l:'Nomor Induk Yayasan'},{k:'nama',l:'Nama Lengkap',req:1},{k:'kk',l:'Nomor Kartu Keluarga'},{k:'nik',l:'Nomor NIK/KTP',req:1},{k:'nuptk',l:'Nomor NUPTK'},{k:'jk',l:'Jenis Kelamin',t:'radio',o:['Laki-laki','Perempuan'],req:1},{k:'tempatLahir',l:'Tempat Lahir'},{k:'tglLahir',l:'Tanggal Lahir',t:'date'},{k:'namaAyah',l:'Nama Ayah'},{k:'namaIbu',l:'Nama Ibu'}]},
+{t:'II. Status Kepegawaian',f:[{k:'statusKawin',l:'Status Perkawinan',t:'radio',o:['Kawin','Belum Kawin','Janda','Duda'],w:'full'},{k:'statusPegawai',l:'Status Pegawai',t:'radio',o:['GT (Guru Tetap)','GTT (Guru Tidak Tetap)'],req:1},{k:'tglMulai',l:'Tanggal Mulai',t:'date'}]},
+{t:'III. Bidang Pengajaran',note:'Mata pelajaran/bidang yang diampu.',f:[1,2,3].map(i=>({k:'mapel'+i,l:'Mata Pelajaran '+i}))},
+{t:'IV. Riwayat Pendidikan',f:[{k:'pendTerakhir',l:'Pendidikan Terakhir',t:'radio',o:['MA/Sederajat','D-III','S-1','S-2','S-3'],w:'full'},{k:'perguruanTinggi',l:'Perguruan Tinggi'},{k:'jurusan',l:'Jurusan/Prodi'},{k:'tahunLulus',l:'Tahun Lulus',t:'number'}]},
+{t:'V. Informasi Kontak',f:[{k:'hp',l:'Nomor HP/WA',t:'tel',req:1}]},
+{t:'VI. Berkas Dokumen',f:[{k:'berkasKtp',l:'KTP',t:'file'},{k:'berkasKk',l:'Kartu Keluarga',t:'file'},{k:'berkasIjazahFormal',l:'Ijazah Formal',t:'file'},{k:'berkasIjazahDayah',l:'Ijazah Dayah',t:'file'},{k:'berkasRekening',l:'Buku Rekening',t:'file'},{k:'berkasNpwp',l:'NPWP',t:'file'}]},
+{t:'Pernyataan',f:[{k:'setuju',t:'check',l:'Persetujuan',c:'Data benar',req:1,w:'full'},{k:'tempatTtd',l:'Tempat',d:'Aceh Besar'},{k:'tglTtd',l:'Tanggal',t:'date'},{k:'namaPemohon',l:'Nama Pemohon',req:1}]}
+];
+
+/* ===================== RENDER FORM DENGAN TAILWIND ===================== */
+function fld(f,p,v){
+ const id=p+'_'+f.k,req=f.req&&!(f.t==='check'&&p==='e')?'required':'';
+ if(v===undefined||v==='')v=f.d!==undefined&&v===undefined?f.d:(v||'');
+ const rq=f.req?'<span class="text-red-500 ml-1">*</span>':'';
+ 
+ const inputClass = "w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none transition text-sm";
+ 
+ let inp='';
+ if(f.t==='check') return `<div class="${f.w==='full'?'col-span-full':''} mb-4"><div class="chip-container flex items-center"><label class="inline-flex items-center cursor-pointer"><input type="checkbox" id="${id}" class="hidden" ${v==='Ya'?'checked':''} ${req}><span class="px-4 py-2 border border-slate-200 rounded-full bg-slate-50 text-slate-600 text-sm transition-colors font-medium flex items-center gap-2"><svg class="w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>${esc(f.c||f.l)}</span></label></div></div>`;
+ 
+ if(f.t==='radio') inp=`<div class="flex flex-wrap gap-2 chip-container">`+f.o.map(o=>`<label><input type="radio" name="${id}" value="${esc(o)}" class="hidden" ${v===o?'checked':''} ${req}><span class="px-4 py-2 inline-block border border-slate-200 rounded-full bg-slate-50 text-slate-600 text-sm transition-colors">${esc(o)}</span></label>`).join('')+`</div>`;
+ 
+ else if(f.t==='region') inp=`<select id="${id}" data-region="${f.region}" class="${inputClass}" ${req}><option value="">— Pilih ${esc(f.l)} —</option></select>`;
+ else if(f.t==='select') inp=`<select id="${id}" class="${inputClass}" ${req}><option value="">— Pilih —</option>${f.o.map(o=>`<option ${v===o?'selected':''}>${esc(o)}</option>`).join('')}</select>`;
+ else if(f.t==='ta') inp=`<textarea id="${id}" rows="3" class="${inputClass}" ${req}>${esc(v)}</textarea>`;
+ else if(f.t==='file') inp=`<input type="file" id="${id}" accept=".pdf,image/*" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-primary/10 file:text-brand-primary hover:file:bg-brand-primary/20 cursor-pointer border border-slate-200 rounded-xl p-1 bg-slate-50">${v?`<div class="mt-2 text-xs text-slate-500">Tersimpan: <a href="${esc(v)}" target="_blank" class="text-blue-600 hover:underline">Lihat berkas</a></div>`:'<div class="mt-1 text-xs text-slate-400">PDF/JPG/PNG, maks. 4 MB</div>'}`;
+ else inp=`<input type="${f.t||'text'}" id="${id}" value="${esc(v)}" class="${inputClass}" ${req} ${f.k.toLowerCase().includes('nik')?'inputmode="numeric" pattern="[0-9]{16}" maxlength="16"':''} ${f.t==='number'?'min="0" step="any"':''}>`;
+ 
+ return `<div class="${f.w==='full'?'col-span-full':''} mb-4"><label for="${id}" class="block text-sm font-medium text-slate-700 mb-1.5">${esc(f.l)}${rq}</label>${inp}</div>`;
+}
+
+function renderForm(schema,p,data,admin){
+ data=data||{};
+ return schema.filter(s=>admin||!s.admin).map(s=>`
+    <div class="mb-8 bg-white border border-slate-100 p-6 rounded-2xl shadow-sm">
+        <h3 class="font-sans font-bold text-xl text-brand-navy mb-4 border-b border-slate-100 pb-2 inline-block border-brand-gold">${esc(s.t)}</h3>
+        ${s.note?`<div class="bg-yellow-50 border-l-4 border-brand-gold p-4 rounded-r-lg mb-6 text-sm text-yellow-800">${esc(s.note)}</div>`:''}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">${s.f.map(f=>fld(f,p,data[f.k])).join('')}</div>
+    </div>`).join('');
+}
+
+function collect(schema,p){
+ const o={};
+ schema.forEach(s=>s.f.forEach(f=>{
+  const id=p+'_'+f.k;
+  if(f.t==='file')return;
+  if(f.t==='radio'){if(!document.getElementsByName(id).length)return;const c=document.querySelector(`input[name="${id}"]:checked`);o[f.k]=c?c.value:'';return}
+  const e=document.getElementById(id);if(!e)return;
+  o[f.k]=f.t==='check'?(e.checked?'Ya':(f.k.endsWith('Alm')?'Tidak':'')):(f.t==='region'?(e.selectedOptions[0]&&e.value?e.selectedOptions[0].text:''):e.value.trim());
+ }));
+ return o;
+}
+const readB64=f=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=()=>rej(new Error('Gagal membaca berkas'));r.readAsDataURL(f)});
+async function uploadFiles(schema,p,kind,o){
+ for(const s of schema)for(const f of s.f){
+  if(f.t!=='file')continue;
+  const e=document.getElementById(p+'_'+f.k);if(!e||!e.files||!e.files[0])continue;
+  const file=e.files[0];
+  if(file.size>4*1024*1024)throw new Error(f.l+': ukuran berkas maks 4 MB.');
+  busy(true,'Mengunggah '+f.l+'…');
+  const r=await call('uploadFile',kind,file.name,file.type,await readB64(file));
+  if(!r.ok)throw new Error(f.l+': '+r.msg);
+  o[f.k]=r.url;
+ }
+}
+function bindStatus(p){
+ const sync=()=>{
+  const a=$('#'+p+'_ayahAlm'),i=$('#'+p+'_ibuAlm'),pa=$('#'+p+'_ayahPekerjaan'),pi=$('#'+p+'_ibuPekerjaan');if(!a||!i)return;
+  const ad=a.checked||(pa&&pa.value==='Sudah Meninggal'),id=i.checked||(pi&&pi.value==='Sudah Meninggal');
+  const v=ad&&id?'Yatim Piatu':ad?'Yatim':id?'Piatu':null;
+  if(v){const r=document.querySelector(`input[name="${p}_status"][value="${v}"]`);if(r)r.checked=true}
+  [['ayah',ad],['ibu',id],['wali',deadStatus('wali')]].forEach(([who,isDead])=>{
+   const income=$('#'+p+'_'+who+'Penghasilan');if(!income)return;
+   if(isDead){income.value='';income.disabled=true;income.title='Tidak dapat diisi karena status Almarhum/Almarhumah';income.classList.add('opacity-50','cursor-not-allowed');}
+   else{income.disabled=false;income.title='';income.classList.remove('opacity-50','cursor-not-allowed');}
+  });
+ };
+ function deadStatus(who){const c=$('#'+p+'_'+who+'Alm'),j=$('#'+p+'_'+who+'Pekerjaan');return !!((c&&c.checked)||(j&&j.value==='Sudah Meninggal'));}
+ ['ayahAlm','ibuAlm','ayahPekerjaan','ibuPekerjaan','waliAlm','waliPekerjaan'].forEach(k=>{const e=$('#'+p+'_'+k);if(e)e.addEventListener('change',sync)});
+ sync();
+}
+
+const REGION_API='https://www.emsifa.com/api-wilayah-indonesia/api/';
+async function regionFetch(path){const r=await fetch(REGION_API+path);if(!r.ok)throw new Error('Layanan wilayah tidak merespons.');return r.json();}
+function fillRegion(sel,items,selected){sel.innerHTML='<option value="">— Pilih —</option>'+items.map(x=>`<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('');const hit=items.find(x=>String(x.name).toLowerCase()===String(selected||'').toLowerCase());if(hit)sel.value=hit.id;}
+async function initRegionGroup(prefix,keys,saved){
+ const pSel=$('#'+prefix+'_'+keys.province),rSel=$('#'+prefix+'_'+keys.regency),dSel=$('#'+prefix+'_'+keys.district),vSel=$('#'+prefix+'_'+keys.village);if(!pSel||!rSel||!dSel||!vSel)return;
+ try{
+  const provinces=await regionFetch('provinces.json');fillRegion(pSel,provinces,saved[keys.province]);
+  const loadReg=async()=>{const id=pSel.value;const a=id?await regionFetch('regencies/'+id+'.json'):[];fillRegion(rSel,a,saved[keys.regency]);await loadDist();};
+  const loadDist=async()=>{const id=rSel.value;const a=id?await regionFetch('districts/'+id+'.json'):[];fillRegion(dSel,a,saved[keys.district]);await loadVill();};
+  const loadVill=async()=>{const id=dSel.value;const a=id?await regionFetch('villages/'+id+'.json'):[];fillRegion(vSel,a,saved[keys.village]);};
+  pSel.addEventListener('change',async()=>{saved[keys.regency]=saved[keys.district]=saved[keys.village]='';await loadReg();});
+  rSel.addEventListener('change',async()=>{saved[keys.district]=saved[keys.village]='';await loadDist();});
+  dSel.addEventListener('change',async()=>{saved[keys.village]='';await loadVill();});
+  await loadReg();
+ }catch(err){[pSel,rSel,dSel,vSel].forEach(el=>{el.innerHTML='<option value="">Gagal memuat wilayah — muat ulang</option>';});console.warn(err);}
+}
+function initRegionFields(prefix,schema,data){
+ const hasMain=schema.some(s=>s.f.some(f=>f.k==='provinsi'));
+ const hasWali=schema.some(s=>s.f.some(f=>f.k==='waliProvinsi'));
+ if(hasMain)initRegionGroup(prefix,{province:'provinsi',regency:'kabupaten',district:'kecamatan',village:'desa'},data||{});
+ if(hasWali)initRegionGroup(prefix,{province:'waliProvinsi',regency:'waliKab',district:'waliKec',village:'waliDesa'},data||{});
+}
+
+/* ===================== KALENDER HALAMAN UTAMA ===================== */
+function initHomeCalendar(){
+ const monthEl=$('#calendarMonth'),yearEl=$('#calendarYear'),daysEl=$('#calendarDays'),agendaEl=$('#calendarAgenda');
+ if(!monthEl||!yearEl||!daysEl)return;
+ const today=new Date();let viewYear=today.getFullYear(),viewMonth=today.getMonth();
+ let selectedDate=new Date(today.getFullYear(),today.getMonth(),today.getDate());
+ const events={'2026-11-10':'Hari Pahlawan','2026-11-17':'Ujian Tengah Semester'};
+ const pad=n=>String(n).padStart(2,'0');
+ const key=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+ for(let y=today.getFullYear()-30;y<=today.getFullYear()+30;y++){const op=document.createElement('option');op.value=y;op.textContent=y;yearEl.appendChild(op);}
+ function showAgenda(){const event=events[key(selectedDate)];agendaEl.textContent=selectedDate.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})+' — '+(event||'Tidak ada agenda yang tercatat.');}
+ function render(){
+  monthEl.value=String(viewMonth);yearEl.value=String(viewYear);daysEl.innerHTML='';
+  const firstDay=new Date(viewYear,viewMonth,1).getDay(),totalDays=new Date(viewYear,viewMonth+1,0).getDate();
+  for(let i=0;i<firstDay;i++){const blank=document.createElement('div');blank.className='h-9';daysEl.appendChild(blank);}
+  for(let day=1;day<=totalDays;day++){
+   const date=new Date(viewYear,viewMonth,day),dateKey=key(date),isToday=dateKey===key(today),isSelected=dateKey===key(selectedDate);
+   const btn=document.createElement('button');btn.type='button';btn.textContent=day;btn.setAttribute('aria-label','Pilih '+date.toLocaleDateString('id-ID'));
+   btn.className='relative w-9 h-9 flex items-center justify-center mx-auto rounded-full transition-colors hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-cyan-300 '+(isSelected?'bg-cyan-400 text-blue-950 font-bold shadow-[0_0_15px_rgba(6,182,212,0.5)]':(isToday?'border border-cyan-300 text-cyan-200':'text-white'));
+   if(events[dateKey]){const dot=document.createElement('span');dot.className='absolute bottom-1 w-1 h-1 rounded-full '+(isSelected?'bg-blue-900':'bg-brand-gold');btn.appendChild(dot);}
+   btn.addEventListener('click',()=>{selectedDate=date;render();});daysEl.appendChild(btn);
+  }
+  showAgenda();
+ }
+ function shift(delta){const d=new Date(viewYear,viewMonth+delta,1);viewYear=d.getFullYear();viewMonth=d.getMonth();render();}
+ $('#calendarPrev').addEventListener('click',()=>shift(-1));$('#calendarNext').addEventListener('click',()=>shift(1));
+ $('#calendarToday').addEventListener('click',()=>{viewYear=today.getFullYear();viewMonth=today.getMonth();selectedDate=new Date(today.getFullYear(),today.getMonth(),today.getDate());render();});
+ monthEl.addEventListener('change',()=>{viewMonth=Number(monthEl.value);render();});yearEl.addEventListener('change',()=>{viewYear=Number(yearEl.value);render();});
+ render();
+}
+
+/* ===================== PUBLIK LOGIC ===================== */
+function showPub(n){
+ ['home','santri','guru','login'].forEach(x=>$('#p_'+x).classList.toggle('hidden', x!==n));
+ $$('.nav-link').forEach(a=>{
+     if(a.dataset.p===n) {
+         a.classList.add('text-white', 'font-semibold');
+         a.classList.remove('text-blue-200');
+     } else {
+         a.classList.remove('text-white', 'font-semibold');
+         a.classList.add('text-blue-200');
+     }
+ });
+ $('#pnav').classList.add('hidden');scrollTo(0,0);
+}
+function initPublicForms(){
+ $('#formS').innerHTML=renderForm(SS,'s',{},false)+'<div class="mt-8 flex justify-end"><button type="submit" class="px-8 py-3 bg-brand-navy text-white rounded-xl font-semibold hover:bg-slate-800 transition shadow-lg">Kirim Data Santri</button></div>';
+ $('#formG').innerHTML=renderForm(SG,'g',{},false)+'<div class="mt-8 flex justify-end"><button type="submit" class="px-8 py-3 bg-brand-navy text-white rounded-xl font-semibold hover:bg-slate-800 transition shadow-lg">Kirim Data Guru</button></div>';
+ bindStatus('s');
+ initRegionFields('s',SS,{});
+ $('#formS').addEventListener('submit',e=>{e.preventDefault();sendPublic('santri',SS,'s','formS','wrapS')});
+ $('#formG').addEventListener('submit',e=>{e.preventDefault();sendPublic('guru',SG,'g','formG','wrapG')});
+}
+async function sendPublic(kind,schema,p,formId,wrapId){
+ const form=$('#'+formId);
+ if(!form.reportValidity())return;
+ busy(true,'Menyiapkan data…');
+ try{
+  const o=collect(schema,p);
+  const nikResult=await call('checkNIK',kind,o.nik||'',o.id||'');
+  if(!nikResult.ok)throw new Error(nikResult.msg||'NIK tidak valid.');
+  if(nikResult.exists)throw new Error('NIK tersebut sudah terdaftar. Periksa kembali nomor NIK.');
+  await uploadFiles(schema,p,kind,o);
+  busy(true,'Menyimpan data…');
+  const r=await call(kind==='santri'?'saveSantri':'saveGuru','',o);
+  busy(false);
+  if(!r.ok){toast(r.msg||'Gagal menyimpan','err');return}
+  $('#'+wrapId).innerHTML=`<div class="p-16 text-center"><div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6"><svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></div><h2 class="font-sans font-bold text-2xl text-slate-800 mb-2">Pendaftaran Berhasil</h2><p class="text-slate-500 mb-8">Data ${kind==='santri'?'santri':'guru'} atas nama <b>${esc(o.nama)}</b> telah tersimpan.<br>No. Ref: <span class="font-mono bg-slate-100 px-2 py-1 rounded">${esc(r.id)}</span></p><button class="px-6 py-2.5 bg-brand-navy text-white rounded-full font-medium" onclick="restoreForm('${kind}')">Kembali ke Formulir</button></div>`;
+  scrollTo(0,0);
+ }catch(e){busy(false);toast(e.message,'err')}
+}
+
+function restoreForm(kind) {
+    if (kind === 'santri') {
+        $('#wrapS').innerHTML = `<div class="bg-gradient-to-br from-[#0a2364] via-[#103b99] to-[#1c55db] text-white p-10 text-center relative overflow-hidden">
+            <div class="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml,%3Csvg width=\\'60\\' height=\\'60\\' viewBox=\\'0 0 60 60\\' xmlns=\\'http://www.w3.org/2000/svg\\'%3E%3Cg fill=\\'none\\' fill-rule=\\'evenodd\\'%3E%3Cg fill=\\'#ffffff\\' fill-opacity=\\'1\\'%3E%3Cpath d=\\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]"></div>
+            <h2 class="font-sans font-bold text-3xl mb-2 relative z-10">Formulir Pendaftaran Santri Baru</h2>
+            <p class="text-brand-gold relative z-10">Lengkapi data dengan benar dan akurat</p>
+        </div>
+        <form id="formS" class="p-8 md:p-10" novalidate></form>`;
+    } else {
+        $('#wrapG').innerHTML = `<div class="bg-gradient-to-br from-[#0a2364] via-[#103b99] to-[#1c55db] text-white p-10 text-center relative overflow-hidden">
+            <div class="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml,%3Csvg width=\\'60\\' height=\\'60\\' viewBox=\\'0 0 60 60\\' xmlns=\\'http://www.w3.org/2000/svg\\'%3E%3Cg fill=\\'none\\' fill-rule=\\'evenodd\\'%3E%3Cg fill=\\'#ffffff\\' fill-opacity=\\'1\\'%3E%3Cpath d=\\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]"></div>
+            <h2 class="font-sans font-bold text-3xl mb-2 relative z-10">Formulir Biodata Guru</h2>
+            <p class="text-brand-gold relative z-10">Pembaruan data dewan guru tahun 2026</p>
+        </div>
+        <form id="formG" class="p-8 md:p-10" novalidate></form>`;
+    }
+    initPublicForms();
+    showPub(kind);
+}
+
+/* ===================== LOGIN LOGIC ===================== */
+$('#eye').onclick=()=>{const i=$('#lp');i.type=i.type==='password'?'text':'password'; $('#eye').innerHTML=i.type==='password'?`<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>`:`<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path></svg>`};
+$('#formL').addEventListener('submit',async e=>{
+ e.preventDefault();$('#lerr').textContent='';busy(true,'Memeriksa akun…');
+ try{
+  const r=await call('login',$('#lu').value,$('#lp').value);
+  if(!r.ok){busy(false);$('#lerr').textContent=r.msg;return}
+  S.token=r.token;localStorage.setItem('satupintu_admin_token',r.token);localStorage.setItem('satupintu_admin_user',r.user||'Admin');$('#who').textContent=r.user;
+  busy(true,'Memuat data…');
+  await refresh('all');
+  $('#pub').classList.add('hidden');$('#admin').classList.remove('hidden');$('#lp').value='';
+  buildMenu();go('dash');
+ }catch(er){$('#lerr').textContent=er.message}
+ busy(false);
+});
+function doLogout(silent){
+ if(S.token)call('logout',S.token).catch(()=>{});
+ S.token='';localStorage.removeItem('satupintu_admin_token');localStorage.removeItem('satupintu_admin_user');$('#admin').classList.add('hidden');$('#pub').classList.remove('hidden');showPub('login');closeModal();
+ if(silent)toast('Sesi berakhir, silakan login kembali.','err');
+}
+async function refresh(w){
+ const jobs=[];
+ if(w==='all'||w==='santri')jobs.push(api('getSantri').then(r=>S.santri=r.data));
+ if(w==='all'||w==='guru')jobs.push(api('getGuru').then(r=>S.guru=r.data));
+ await Promise.all(jobs);
+}
+
+/* ===================== LOGIKA DATA ===================== */
+function stat(s){let v=s.statusSantri||'Aktif';if(v==='Aktif'&&s.tglMasuk){const y=(Date.now()-new Date(s.tglMasuk))/31557600000;if(y>=6)return 'Alumni'}return v}
+const act=()=>S.santri.filter(s=>stat(s)==='Aktif');
+const dead=(s,p)=>s[p+'Alm']==='Ya'||s[p+'Pekerjaan']==='Sudah Meninggal';
+function yatim(s){const a=dead(s,'ayah'),i=dead(s,'ibu');if(a&&i)return 'Yatim Piatu';if(a)return 'Yatim';if(i)return 'Piatu';return ['Yatim','Piatu','Yatim Piatu'].includes(s.status)?s.status:''}
+const pek=(s,p)=>s[p+'Pekerjaan']==='Lain-lain'?(s[p+'PekerjaanLain']||'Lain-lain'):(s[p+'Pekerjaan']||'');
+// Kategori sosial ekonomi dihitung dari total pendapatan Ayah + Ibu per bulan.
+// Jika kedua kolom belum diisi, kategori dan total pendapatan dikosongkan.
+function income(s){
+ const ayahAda=s.ayahPenghasilan!==undefined&&s.ayahPenghasilan!==null&&String(s.ayahPenghasilan).trim()!=='';
+ const ibuAda=s.ibuPenghasilan!==undefined&&s.ibuPenghasilan!==null&&String(s.ibuPenghasilan).trim()!=='';
+ if(!ayahAda&&!ibuAda)return null;
+ return (ayahAda?num(s.ayahPenghasilan):0)+(ibuAda?num(s.ibuPenghasilan):0);
+}
+// Tampilkan nilai penghasilan persis sesuai data yang tersimpan.
+// Form saat ini menyimpan penghasilan sebagai rentang nominal, bukan angka tunggal.
+function incomeValueDisplay(v){
+ if(v===undefined||v===null||String(v).trim()==='')return 'Belum diisi';
+ const raw=String(v).trim();
+ // Jika berupa rentang nominal, pertahankan seluruh rentangnya agar tidak salah dihitung.
+ if(/[–-]/.test(raw)&&/\d/.test(raw))return raw;
+ // Jika berupa angka tunggal, tampilkan dalam format Rupiah.
+ const n=num(raw);
+ return n?rp(n):raw;
+}
+function fakirIncomeDisplay(s){
+ const ayah=incomeValueDisplay(s.ayahPenghasilan);
+ const ibu=incomeValueDisplay(s.ibuPenghasilan);
+ return 'Ayah: '+ayah+' | Ibu: '+ibu;
+}
+function miskin(s){
+ const inc=income(s);
+ if(inc===null)return '';
+ if(inc<=500000)return 'Fakir';
+ if(inc<=1500000)return 'Miskin';
+ return '';
+}
+const sKamar=s=>s.waliKamar||'';
+
+/* ===================== MENU ADMIN TAILWIND ===================== */
+const MENU=[
+ {id:'dash',t:'Dashboard',ic:'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'},
+ {id:'santri',t:'Data Santri',ic:'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',sub:[['s_all','Semua Data Santri'],['s_absen_kelas','Absensi Perkelas'],['s_absen_kamar','Data Perkamar'],['s_kab','Data Perkab'],['s_kec','Data Perkecamatan'],['s_yatim','Yatim / Piatu'],['s_fakir','Fakir Miskin'],['s_alumni','Data Alumni'],['s_alumnus','Data Alumnus']]},
+ {id:'guru',t:'Data Guru',ic:'M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'},
+ {id:'set',t:'Pengaturan',ic:'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM12 15a3 3 0 100-6 3 3 0 000 6z'}
+];
+const TITLES={};MENU.forEach(m=>{TITLES[m.id]=m.t;(m.sub||[]).forEach(s=>TITLES[s[0]]=s[1])});
+let cur='dash';
+
+function buildMenu(){
+ $('#menu').innerHTML=MENU.map(m=>m.sub?
+    `<div><div class="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer text-sm transition-colors text-white/80 hover:bg-white/10 group select-none" data-g="${m.id}"><svg class="w-5 h-5 text-white/60 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${m.ic}"></path></svg> <span>${m.t}</span><svg class="w-4 h-4 ml-auto transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></div><div class="hidden mt-1 mb-2 ml-4 pl-4 border-l border-white/20 space-y-1" id="sub_${m.id}">${m.sub.map(s=>`<div class="px-4 py-2 rounded-lg cursor-pointer text-xs transition-colors text-white/70 hover:bg-white/10 hover:text-white" data-go="${s[0]}">${s[1]}</div>`).join('')}</div></div>`
+    :
+    `<div class="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer text-sm transition-colors text-white/80 hover:bg-white/10 group select-none" data-go="${m.id}"><svg class="w-5 h-5 text-white/60 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${m.ic}"></path></svg> <span>${m.t}</span></div>`
+ ).join('');
+ 
+ $$('#menu [data-g]').forEach(e=>{
+    e.onclick=()=>{
+        const sub = $('#sub_'+e.dataset.g);
+        const icon = e.querySelector('svg:last-child');
+        sub.classList.toggle('hidden');
+        if(!sub.classList.contains('hidden')) { icon.classList.add('rotate-90'); } else { icon.classList.remove('rotate-90'); }
+    }
+ });
+ $$('#menu [data-go]').forEach(e=>e.onclick=()=>go(e.dataset.go));
+}
+
+const VIEWS={dash:()=>v_dash(),s_all:()=>v_sAll(),s_absen_kelas:()=>v_absen('kelas'),s_absen_kamar:()=>v_absen('kamar'),s_kab:()=>v_wilayah('kabupaten'),s_kec:()=>v_wilayah('kecamatan'),s_yatim:()=>v_yatim(),s_fakir:()=>v_fakir(),s_alumni:()=>v_alumni('Alumni'),s_alumnus:()=>v_alumni('Alumnus'),guru:()=>v_guru(),set:()=>v_set()};
+
+function go(id){
+ cur=id;$('#ttl').textContent=TITLES[id];
+ $$('#menu [data-go]').forEach(e=>{
+    if(e.dataset.go===id) {
+        e.classList.add('bg-white', 'text-brand-primary', 'font-semibold', 'shadow-md');
+        e.classList.remove('text-white/70', 'text-white/80', 'hover:bg-white/10');
+        const icon = e.querySelector('svg'); if(icon) icon.classList.replace('text-white/60', 'text-brand-primary');
+    } else {
+        e.classList.remove('bg-white', 'text-brand-primary', 'font-semibold', 'shadow-md');
+        if(e.parentElement.id.startsWith('sub_')) e.classList.add('text-white/70', 'hover:bg-white/10');
+        else e.classList.add('text-white/80', 'hover:bg-white/10');
+        const icon = e.querySelector('svg'); if(icon) icon.classList.replace('text-brand-primary', 'text-white/60');
+    }
+ });
+ if(id.startsWith('s_')){
+     $('#sub_santri').classList.remove('hidden');
+     $('[data-g=santri] svg:last-child').classList.add('rotate-90');
+ }
+ $('#side').classList.remove('translate-x-0'); // close mobile sidebar
+ scrollTo(0,0);
+ Promise.resolve(VIEWS[id]()).catch(e=>toast(e.message,'err'));
+}
+
+/* ===================== DASHBOARD ADMIN ===================== */
+let charts=[];
+const PAL=['#103b99','#3b82f6','#f59e0b','#ef4444','#8b5cf6','#14b8a6','#f97316','#06b6d4'];
+function mk(id,type,labels,data,horiz){
+ const c=new Chart($('#'+id),{type,data:{labels,datasets:[{data,backgroundColor:PAL,borderWidth:0,borderRadius:type==='bar'?4:0}]},
+  options:{maintainAspectRatio:false,indexAxis:horiz?'y':'x',plugins:{legend:{display:type!=='bar',position:'bottom'}},scales:type==='bar'?{y:{beginAtZero:true,ticks:{precision:0}},x:{ticks:{precision:0}}}:{}}});
+ charts.push(c);
+}
+const cnt=(arr,fn)=>{const m={};arr.forEach(x=>{const k=fn(x);if(k)m[k]=(m[k]||0)+1});return m};
+
+function v_dash(){
+ charts.forEach(c=>c.destroy());charts=[];
+ const a=act(),L=a.filter(s=>s.jk==='Laki-laki').length,P=a.filter(s=>s.jk==='Perempuan').length;
+ const y=cnt(a,yatim),fk=cnt(a,miskin);
+ const k=[
+    {l:'Santri Aktif', v:a.length, c:'bg-blue-100 text-blue-700'},
+    {l:'Putra / Putri', v:`${L} / ${P}`, c:'bg-cyan-100 text-cyan-700'},
+    {l:'Total Guru', v:S.guru.length, c:'bg-indigo-100 text-indigo-700'},
+    {l:'Yatim/Piatu', v:(y['Yatim']||0)+(y['Piatu']||0)+(y['Yatim Piatu']||0), c:'bg-amber-100 text-amber-700'}
+ ];
+ const recent=[...S.santri].sort((x,z)=>String(z.createdAt).localeCompare(String(x.createdAt))).slice(0,5);
+ 
+ $('#view').innerHTML=`
+ <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    ${k.map(x=>`
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex items-center gap-4 hover:-translate-y-1 transition-transform">
+        <div class="w-12 h-12 rounded-xl ${x.c} flex items-center justify-center font-bold text-xl"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg></div>
+        <div><div class="text-sm text-slate-500 font-medium">${x.l}</div><div class="text-2xl font-bold text-slate-800">${x.v}</div></div>
+    </div>`).join('')}
+ </div>
+ <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6"><h2 class="font-sans font-bold text-lg text-slate-800 mb-4">Santri per Kelas</h2><div class="h-64 relative"><canvas id="c1"></canvas></div></div>
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6"><h2 class="font-sans font-bold text-lg text-slate-800 mb-4">Asal Wilayah (Top 5)</h2><div class="h-64 relative"><canvas id="c4"></canvas></div></div>
+ </div>
+ <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+    <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center">
+        <h2 class="font-sans font-bold text-lg text-slate-800">Pendaftar Terbaru</h2>
+    </div>
+    <div class="overflow-x-auto">
+        ${recent.length?`
+        <table>
+            <thead><tr><th>Waktu</th><th>Nama</th><th>NISN</th><th>Kelas Tujuan</th></tr></thead>
+            <tbody>${recent.map(s=>`<tr><td class="text-xs text-slate-500">${esc(s.createdAt)}</td><td class="font-medium">${esc(s.nama)}</td><td>${esc(s.nisn)}</td><td><span class="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg text-xs font-semibold">${esc(s.kelasSekarang||s.kelasDiterima)}</span></td></tr>`).join('')}</tbody>
+        </table>`:'<div class="p-8 text-center text-slate-500">Belum ada pendaftar.</div>'}
+    </div>
+ </div>`;
+ 
+ const kl=cnt(a,s=>s.kelasSekarang);mk('c1','bar',KELAS,KELAS.map(x=>kl[x]||0));
+ const kb=Object.entries(cnt(a,s=>nk(s.kabupaten))).sort((x,z)=>z[1]-x[1]).slice(0,5);mk('c4','bar',kb.map(x=>x[0]),kb.map(x=>x[1]),true);
+}
+
+/* ===================== LIST VIEW GENERIK ===================== */
+function listView(c){
+ const fh=(c.filters||[]).map(f=>f.search?`<div><label class="block text-xs font-medium text-slate-500 mb-1">${f.l}</label><input type="text" id="f_${f.id}" placeholder="${f.ph||'Cari...'}" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-primary outline-none"></div>`:`<div><label class="block text-xs font-medium text-slate-500 mb-1">${f.l}</label><select id="f_${f.id}" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-primary outline-none">${f.all===false?'':'<option value="">Semua</option>'}${f.o.map(o=>`<option>${esc(o)}</option>`).join('')}</select></div>`).join('');
+ 
+ $('#view').innerHTML=`
+ <div class="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden">
+    <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div><h2 class="font-sans font-bold text-xl text-slate-800">${c.title}</h2><p class="text-sm text-slate-500 mt-1">${c.sub||''} <span id="lvN" class="font-semibold text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded-full ml-1"></span></p></div>
+        <div class="flex flex-wrap gap-2">
+            ${c.add?'<button class="px-4 py-2 bg-brand-primary text-white text-sm font-medium rounded-lg hover:bg-brand-primary-dark transition flex items-center gap-1 shadow-sm" id="lvAdd"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg> Tambah</button>':''}
+            <button class="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-200 transition" id="lvX">Excel</button>
+            <button class="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-200 transition" id="lvP">PDF</button>
+        </div>
+    </div>
+    ${fh?`<div class="p-4 bg-slate-50 border-b border-slate-100 grid grid-cols-2 md:grid-cols-4 gap-4">${fh}</div>`:''}
+    <div class="overflow-x-auto max-h-[60vh]" id="lvT"></div>
+ </div>`;
+ 
+ let rows=[];
+ const vals=()=>{const v={};(c.filters||[]).forEach(f=>v[f.id]=$('#f_'+f.id).value.trim());return v};
+ const head=()=>c.exportHead?c.exportHead():['No',...c.cols.map(x=>x.h)];
+ const body=()=>c.exportBody?c.exportBody(rows):rows.map((r,i)=>[i+1,...c.cols.map(x=>x.v(r)||'')]);
+ const draw=()=>{
+  rows=c.rows(vals());$('#lvN').textContent=rows.length;
+  $('#lvT').innerHTML=rows.length?`<table><thead><tr>${head().map(h=>`<th>${h}</th>`).join('')}${c.act?'<th>Aksi</th>':''}</tr></thead><tbody>${rows.map((r,i)=>`<tr><td class="text-slate-400 text-xs">${i+1}</td>${c.cols.map(x=>`<td>${esc(x.v(r))}</td>`).join('')}${c.act?`<td><div class="flex gap-2">${c.act(r)}</div></td>`:''}</tr>`).join('')}</tbody></table>`:'<div class="p-12 text-center text-slate-500">Tidak ada data.</div>';
+ };
+ (c.filters||[]).forEach(f=>{const e=$('#f_'+f.id);e.addEventListener(f.search?'input':'change',draw)});
+ $('#lvX').onclick=()=>c.exportX?c.exportX(rows):xlsx(slug(c.title),head(),body());
+ $('#lvP').onclick=()=>c.exportP?c.exportP(rows):pdf(slug(c.title),c.title,head(),body());
+ if(c.add)$('#lvAdd').onclick=c.add;
+ $('#lvT').addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b&&c.onAct)c.onAct(b.dataset.a,b.dataset.id)});
+ draw();
+}
+
+const actBtns=id=>`<button class="px-2 py-1 bg-blue-50 text-blue-600 rounded text-xs hover:bg-blue-100 transition" data-a="view" data-id="${id}">Lihat</button> <button class="px-2 py-1 bg-amber-50 text-amber-600 rounded text-xs hover:bg-amber-100 transition" data-a="edit" data-id="${id}">Edit</button> <button class="px-2 py-1 bg-red-50 text-red-600 rounded text-xs hover:bg-red-100 transition" data-a="del" data-id="${id}">Hapus</button>`;
+function onAct(kind){return (a,id)=>{if(a==='view')viewRec(kind,id);if(a==='edit')openForm(kind,id);if(a==='del')delRecConf(kind,id);if(a==='print'){const r=(kind==='santri'?S.santri:S.guru).find(x=>x.id===id);if(r){if(kind==='santri')printSantri(r);else printGuru(r)}}}}
+const sBase=[{h:'NISN',v:s=>s.nisn},{h:'Nama',v:s=>s.nama},{h:'L/P',v:s=>s.jk==='Laki-laki'?'L':'P'},{h:'Kelas',v:s=>s.kelasSekarang},{h:'Kabupaten',v:s=>s.kabupaten}];
+const srch=(s,q)=>!q||[s.nama,s.nis,s.nisn,s.nik].some(x=>String(x||'').toLowerCase().includes(q.toLowerCase()));
+const sorted=a=>[...a].sort((x,y)=>String(x.nama).localeCompare(String(y.nama),'id'));
+
+/* ===================== EKSPOR BIODATA SANTRI LENGKAP ===================== */
+function santriExportFields(){
+ return SS.flatMap(sec=>sec.f.map(f=>({key:f.k,label:sec.t+' - '+f.l})));
+}
+function santriExportValue(s,key){
+ const v=s&&s[key];
+ if(v===undefined||v===null)return '';
+ if(/^(tglLahir|tglMasuk|tglTtd)$/.test(key))return fd(v);
+ return String(v);
+}
+function exportSantriExcel(records){
+ const fields=santriExportFields();
+ const head=['No',...fields.map(f=>f.label)];
+ const body=records.map((s,i)=>[i+1,...fields.map(f=>santriExportValue(s,f.key))]);
+ xlsx('semua-biodata-santri-lengkap',head,body);
+}
+function exportSantriPdf(records){
+ if(!window.jspdf||!window.jspdf.jsPDF)return toast('Pustaka PDF belum dimuat. Muat ulang halaman.','err');
+ if(!records.length)return toast('Tidak ada data untuk diekspor.','err');
+ const d=new jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+ const fields=santriExportFields();
+ records.forEach((s,index)=>{
+  if(index>0)d.addPage();
+  d.setFont('helvetica','bold');d.setFontSize(14);
+  d.text('BIODATA LENGKAP SANTRI',105,14,{align:'center'});
+  d.setFont('helvetica','normal');d.setFontSize(9);
+  d.text('Dayah Terpadu Babul Maghfirah',105,20,{align:'center'});
+  d.setFont('helvetica','bold');d.setFontSize(11);
+  d.text(String(s.nama||'Tanpa Nama'),14,29);
+  d.setFont('helvetica','normal');d.setFontSize(8);
+  d.text('NIS: '+String(s.nis||'-')+'   |   NISN: '+String(s.nisn||'-'),14,35);
+  d.autoTable({
+   head:[['KETERANGAN BIODATA','DATA SANTRI']],
+   body:fields.map(f=>[f.label.replace(/^(?:I\. Biodata Diri Calon Santri|II\. Data Asal Sekolah|III-A\. Data Ayah|III-B\. Data Ibu|III-C\. Alamat Tempat Tinggal|III-D\. Biodata Wali Santri|Unggah Berkas|Persetujuan)\s*-\s*/i,''),santriExportValue(s,f.key)||'-']),
+   startY:40,theme:'grid',
+   styles:{fontSize:7,cellPadding:1.8,overflow:'linebreak',valign:'top'},
+   headStyles:{fillColor:[16,59,153],textColor:255},
+   columnStyles:{0:{cellWidth:75,fontStyle:'bold'},1:{cellWidth:106}},
+   margin:{left:14,right:14,bottom:12}
+  });
+ });
+ d.save('semua-biodata-santri-lengkap.pdf');
+}
+
+/* ===================== VIEW DATA ===================== */
+function v_sAll(){
+ listView({title:'Data Santri Aktif',filters:[{id:'q',l:'Cari Nama/NISN',search:1},{id:'kelas',l:'Kelas',o:KELAS}],rows:v=>sorted(act().filter(s=>srch(s,v.q)&&(!v.kelas||s.kelasSekarang===v.kelas))),cols:sBase,act:s=>actBtns(s.id)+' <button class="px-2 py-1 bg-emerald-50 text-emerald-700 rounded text-xs hover:bg-emerald-100" data-a="print" data-id="'+s.id+'">Cetak</button>',onAct:onAct('santri'),add:()=>openForm('santri'),exportX:exportSantriExcel,exportP:exportSantriPdf});
+}
+function v_wilayah(f){
+ const cols=f==='kecamatan'?
+  [{h:'NISN',v:s=>s.nisn},{h:'Nama',v:s=>s.nama},{h:'L/P',v:s=>s.jk==='Laki-laki'?'L':s.jk==='Perempuan'?'P':''},{h:'Kelas',v:s=>s.kelasSekarang},{h:'Kabupaten',v:s=>s.kabupaten},{h:'Kecamatan',v:s=>s.kecamatan}]:sBase;
+ listView({title:'Data Per'+(f==='kabupaten'?'kabupaten':'kecamatan'),filters:[{id:'w',l:f==='kabupaten'?'Kab/Kota':'Kecamatan',o:uniq(act().map(s=>nk(s[f])))}],rows:v=>sorted(act().filter(s=>!v.w||nk(s[f])===v.w)),cols});
+}
+function v_yatim(){
+ listView({title:'Data Yatim/Piatu',filters:[{id:'k',l:'Kategori',o:['Yatim','Piatu','Yatim Piatu']}],rows:v=>sorted(act().filter(s=>{const y=yatim(s);return v.k?y===v.k:!!y})),cols:[...sBase,{h:'Kategori',v:yatim}]});
+}
+function v_fakir(){
+ listView({title:'Data Fakir Miskin',filters:[{id:'k',l:'Kategori',o:['Fakir','Miskin']}],rows:v=>sorted(act().filter(s=>{const m=miskin(s);return v.k?m===v.k:!!m})),cols:[...sBase,{h:'Penghasilan',v:fakirIncomeDisplay},{h:'Kategori',v:miskin}]});
+}
+function v_alumni(t){
+ listView({title:'Data '+t,filters:[{id:'q',l:'Cari',search:1}],rows:v=>sorted(S.santri.filter(s=>stat(s)===t&&srch(s,v.q))),cols:[...sBase,{h:'Tahun Keluar',v:s=>s.tahunKeluar}]});
+}
+
+/* ===================== EKSPOR BIODATA GURU LENGKAP ===================== */
+function guruExportFields(){return SG.flatMap(sec=>sec.f.map(f=>({key:f.k,label:sec.t+' - '+f.l})));}
+function guruExportValue(g,key){const v=g&&g[key];if(v===undefined||v===null)return '';if(/^(tglLahir|tglMulai|tglTtd)$/.test(key))return fd(v);return String(v);}
+function exportGuruExcel(records){
+ if(!records||!records.length)return toast('Tidak ada data guru untuk diekspor.','err');
+ const fields=guruExportFields(),head=['No.',...fields.map(f=>f.label)];
+ const body=records.map((g,i)=>[i+1,...fields.map(f=>guruExportValue(g,f.key))]);
+ xlsx('semua-biodata-guru-lengkap',head,body);
+}
+function exportGuruPdf(records){
+ if(!window.jspdf||!window.jspdf.jsPDF)return toast('Pustaka PDF belum dimuat. Muat ulang halaman.','err');
+ if(!records||!records.length)return toast('Tidak ada data guru untuk diekspor.','err');
+ const d=new jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'}),fields=guruExportFields();
+ records.forEach((g,index)=>{
+  if(index>0)d.addPage();
+  d.setFont('helvetica','bold');d.setFontSize(14);d.text('BIODATA LENGKAP GURU',105,14,{align:'center'});
+  d.setFont('helvetica','normal');d.setFontSize(9);d.text('Yayasan Perguruan Islam Babul Maghfirah',105,20,{align:'center'});d.text('Dayah Terpadu Babul Maghfirah',105,25,{align:'center'});
+  d.setFont('helvetica','bold');d.setFontSize(11);d.text(String(g.nama||'Tanpa Nama'),14,33);
+  d.setFont('helvetica','normal');d.setFontSize(8);d.text('NIY: '+String(g.niy||'-')+'   |   NUPTK: '+String(g.nuptk||'-'),14,39);
+  d.autoTable({head:[['KETERANGAN BIODATA','DATA GURU']],body:fields.map(f=>[f.label.replace(/^(?:I\\. Identitas Guru|II\\. Status Kepegawaian|III\\. Bidang Pengajaran|IV\\. Riwayat Pendidikan|V\\. Informasi Kontak|VI\\. Berkas Dokumen|Pernyataan)\\s*-\\s*/i,''),guruExportValue(g,f.key)||'-']),startY:44,theme:'grid',styles:{fontSize:7,cellPadding:1.8,overflow:'linebreak',valign:'top'},headStyles:{fillColor:[16,59,153],textColor:255},columnStyles:{0:{cellWidth:75,fontStyle:'bold'},1:{cellWidth:106}},margin:{left:14,right:14,bottom:12}});
+ });
+ d.save('semua-biodata-guru-lengkap.pdf');
+}
+
+function v_guru(){
+ const mp=g=>[1,2,3].map(i=>g['mapel'+i]).filter(Boolean).join(', ');
+ listView({title:'Data Guru',filters:[{id:'q',l:'Cari',search:1},{id:'sp',l:'Status',o:['GT (Guru Tetap)','GTT (Guru Tidak Tetap)']}],rows:v=>sorted(S.guru.filter(g=>(!v.q||[g.nama,g.niy].some(x=>String(x||'').toLowerCase().includes(v.q.toLowerCase())))&&(!v.sp||g.statusPegawai===v.sp))),cols:[{h:'Nama',v:g=>g.nama},{h:'L/P',v:g=>g.jk==='Laki-laki'?'L':'P'},{h:'Pendidikan',v:g=>g.pendTerakhir},{h:'Mapel',v:mp},{h:'HP',v:g=>g.hp}],act:g=>actBtns(g.id)+' <button class="px-2 py-1 bg-emerald-50 text-emerald-700 rounded text-xs hover:bg-emerald-100" data-a="print" data-id="'+g.id+'">Cetak</button>',onAct:onAct('guru'),add:()=>openForm('guru'),exportX:exportGuruExcel,exportP:exportGuruPdf});
+}
+
+/* ===================== ABSENSI ===================== */
+async function v_absen(mode){
+ const isK=mode==='kelas';
+ const groups=isK?KELAS:PENGASUH;
+ 
+ $('#view').innerHTML=`
+ <div class="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6">
+    <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div><h2 class="font-sans font-bold text-xl text-slate-800">Daftar data ${isK?'Kelas':'Kamar'}</h2><p class="text-sm text-slate-500 mt-1">Cetak format absen harian sesuai anggota ${isK?'kelas':'kamar'} yang dipilih.</p></div>
+        <div class="flex gap-2">
+            <button class="px-4 py-2 bg-slate-100 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-200" id="aX">Unduh Excel</button>
+            <button class="px-4 py-2 bg-brand-primary text-white text-sm font-medium rounded-lg hover:bg-brand-primary-dark shadow-sm" id="aP">Cetak PDF</button>
+            ${!isK?'<button class="px-4 py-2 bg-slate-800 text-white text-sm font-medium rounded-lg hover:bg-slate-700" id="aRoomPrint">Cetak Data Perkamar</button>':''}
+        </div>
+    </div>
+    <div class="p-4 bg-slate-50 border-b border-slate-100 grid grid-cols-1 gap-4">
+        <div><label class="block text-xs font-medium text-slate-500 mb-1">${isK?'Pilih Kelas':'Pilih Pengasuh Kamar'}</label><select id="aG" class="w-full md:w-1/3 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-brand-primary">${groups.map(g=>`<option>${esc(g)}</option>`).join('')}</select></div>
+    </div>
+    <div class="overflow-x-auto max-h-[60vh]" id="aT"></div>
+ </div>`;
+ 
+ let list=[];
+ const lst=()=>sorted(act().filter(s=>(isK?s.kelasSekarang:sKamar(s))===$('#aG').value));
+ 
+ const drawD=()=>{
+  list=lst();
+  if(!isK){
+   const head=['No.','Nama Santri','L/P','TTL','Nama Ayah','No. HP Ayah','Nama Ibu','No. HP Ibu','Alamat','Pengasuh Kamar'];
+   const body=roomExportBody($('#aG').value,list);
+   $('#aT').innerHTML=list.length?`<table><thead><tr>${head.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${body.map(r=>`<tr>${r.map((v,i)=>`<td class="${i===0?'text-slate-400 text-xs':i===1?'font-medium':''}">${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table>`:'<div class="p-12 text-center text-slate-500">Tidak ada santri pada kelompok ini.</div>';
+   return;
+  }
+  $('#aT').innerHTML=list.length?`<table><thead><tr><th>No</th><th>NISN</th><th>Nama</th><th>L/P</th></tr></thead><tbody>${list.map((s,i)=>`<tr><td class="text-slate-400 text-xs">${i+1}</td><td>${esc(s.nisn)}</td><td class="font-medium">${esc(s.nama)}</td><td class="text-xs text-slate-500">${s.jk==='Laki-laki'?'L':'P'}</td></tr>`).join('')}</tbody></table>`:'<div class="p-12 text-center text-slate-500">Tidak ada santri pada kelompok ini.</div>';
+ };
+
+ $('#aG').onchange=drawD;
+ if(!isK)$('#aRoomPrint').onclick=()=>{const data=lst();if(!data.length)return toast('Tidak ada santri pada kamar/pengasuh ini.','err');printRoom($('#aG').value,data);};
+ 
+ $('#aX').onclick=()=>{
+     list=lst();
+     if(!list.length) return toast('Tidak ada data untuk dicetak','err');
+     if(!isK){exportRoomExcel($('#aG').value,list);return;}
+     const head = ['No', 'NISN', 'Nama Lengkap', 'L/P', ...Array.from({length:31}, (_,i)=>i+1), 'Ket'];
+     const body = list.map((s,i) => [i+1, s.nisn, s.nama, s.jk==='Laki-laki'?'L':'P', ...Array(31).fill(''), '']);
+     xlsx(slug('absensi-'+mode+'-'+$('#aG').value), head, body);
+ };
+ 
+ $('#aP').onclick=()=>{
+     list=lst();
+     if(!list.length) return toast('Tidak ada data untuk dicetak','err');
+     if(!isK){exportRoomPdf($('#aG').value,list);return;}
+     const head = ['No', 'NISN', 'Nama Lengkap', 'L/P', ...Array.from({length:31}, (_,i)=>i+1), 'Ket'];
+     const body = list.map((s,i) => [i+1, s.nisn, s.nama, s.jk==='Laki-laki'?'L':'P', ...Array(31).fill(''), '']);
+     
+     const d = new jspdf.jsPDF({orientation:'landscape', unit:'mm', format:'a4'});
+     const pageWidth = d.internal.pageSize.width;
+     
+     // Font & Header Styling
+     d.setFont("helvetica", "bold");
+     d.setFontSize(14);
+     
+     if (isK) {
+         const t1 = `DAFTAR ABSENSI KELAS ${$('#aG').value}`;
+         d.text(t1, (pageWidth - d.getTextWidth(t1)) / 2, 16); // Center title
+         
+         d.setFont("helvetica", "normal");
+         d.setFontSize(10);
+         d.text('Dayah Babul Maghfirah', 14, 24);
+         d.text('Wali Kelas : ........................', 14, 30);
+         d.text('Bulan         : ........................', 14, 36);
+     } else {
+         const t1 = `DAFTAR ASRAMA / KAMAR`;
+         d.text(t1, (pageWidth - d.getTextWidth(t1)) / 2, 16); // Center title
+         
+         d.setFont("helvetica", "normal");
+         d.setFontSize(10);
+         d.text('Dayah Babul Maghfirah', 14, 24);
+         d.text(`Nama Pengasuh : ${$('#aG').value}`, 14, 30);
+         d.text('Kamar                : ........................', 14, 36);
+         d.text('Bulan                  : ........................', 14, 42);
+     }
+     
+     // Tabel Presensi
+     d.autoTable({
+         head: [head], 
+         body: body, 
+         startY: isK ? 42 : 48,
+         styles: { fontSize: 7, cellPadding: 1.5, lineColor: [0,0,0], lineWidth: 0.1, textColor: [0,0,0] },
+         headStyles: { fillColor: [240, 240, 240], textColor: [0,0,0], halign: 'center', fontStyle: 'bold' },
+         columnStyles: { 
+             0: { cellWidth: 8, halign: 'center' }, 
+             1: { cellWidth: 22, halign: 'center' },
+             2: { cellWidth: 45 },
+             3: { cellWidth: 8, halign: 'center' }
+         },
+         theme: 'grid'
+     });
+     
+     // Blok Tanda Tangan
+     const finalY = d.lastAutoTable.finalY;
+     d.setFontSize(10);
+     d.text(`Aceh Besar, ${tanggalCetak()}`, pageWidth - 75, finalY + 15);
+     d.text(isK ? "Wali Kelas," : "Pengasuh Kamar,", pageWidth - 75, finalY + 22);
+     d.setFont("helvetica", "bold");
+     
+     // Nama otomatis terisi jika kamar, titik-titik jika kelas
+     const ttdName = isK ? '........................' : $('#aG').value;
+     d.text(`( ${ttdName} )`, pageWidth - 75, finalY + 40);
+     
+     d.save(slug(`absensi-${isK?'kelas':'kamar'}-${$('#aG').value}`)+'.pdf');
+ };
+ 
+ drawD();
+}
+
+/* ===================== DETAIL / EDIT / HAPUS (Custom Modal) ===================== */
+function viewRec(kind,id){
+ const isS=kind==='santri',r=(isS?S.santri:S.guru).find(x=>x.id===id);if(!r)return;
+ const schema=isS?SS:SG;
+ const body=schema.map(s=>`
+    <div class="mb-6">
+        <h4 class="text-brand-primary font-semibold text-sm uppercase tracking-wider mb-3 pb-1 border-b border-slate-100">${esc(s.t)}</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-6">
+            ${s.f.map(f=>{let v=r[f.k]||'';if(f.t==='date')v=fd(v);if(f.t==='number'&&/penghasilan/i.test(f.k)&&v)v=rp(v);if(f.t==='file')v=v?`<a href="${esc(v)}" target="_blank" class="text-blue-600 hover:underline inline-flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg> Buka</a>`:'-';else v=esc(v)||'-';return `<div class="${f.t==='ta'?'col-span-full':''}"><div class="text-xs text-slate-500 mb-0.5">${esc(f.l)}</div><div class="text-sm font-medium text-slate-800">${v}</div></div>`}).join('')}
+        </div>
+    </div>`).join('');
+ openModal((isS?'Detail Santri':'Detail Guru'),`<div class="max-h-[60vh] overflow-y-auto pr-2">${body}</div><div class="mt-6 pt-4 border-t border-slate-100 flex justify-end gap-3"><button class="px-5 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 font-medium" onclick="closeModal()">Tutup</button><button class="px-5 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-primary-dark font-medium shadow-sm" onclick="openForm('${kind}','${id}')">Edit Data</button></div>`,true);
+}
+
+function openForm(kind,id){
+ const isS=kind==='santri',schema=isS?SS:SG;
+ const old=id?(isS?S.santri:S.guru).find(x=>x.id===id):{};
+ openModal((id?'Edit ':'Tambah ')+(isS?'Data Santri':'Data Guru'),`<form id="fE" novalidate><div class="max-h-[65vh] overflow-y-auto pr-2 pb-4">${renderForm(schema,'e',old,true)}</div><div class="mt-6 pt-4 border-t border-slate-100 flex justify-end gap-3"><button type="button" class="px-5 py-2.5 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-medium transition" onclick="closeModal()">Batal</button><button type="submit" class="px-8 py-2.5 bg-brand-primary text-white rounded-xl font-semibold hover:bg-brand-primary-dark transition shadow-lg shadow-brand-primary/20">Simpan Data</button></div></form>`,true);
+ if(isS){bindStatus('e');initRegionFields('e',schema,old||{});}
+ $('#fE').addEventListener('submit',async e=>{
+  e.preventDefault();if(!e.target.reportValidity())return;
+  busy(true,'Menyimpan…');
+  try{
+   const o={...old,...collect(schema,'e')};
+   if(o.nik){const check=await call('checkNIK',kind,o.nik,o.id||'');if(!check.ok)throw new Error(check.msg||'NIK tidak valid.');if(check.exists)throw new Error('NIK tersebut sudah digunakan oleh data lain.');}
+   await uploadFiles(schema,'e',kind,o);
+   busy(true,'Menyimpan Database…');
+   await api(isS?'saveSantri':'saveGuru',o);
+   await refresh(kind);closeModal();toast('Data berhasil disimpan');go(cur);
+  }catch(er){toast(er.message,'err')}
+  busy(false);
+ });
+}
+
+/* Custom Delete Confirm */
+function delRecConf(kind, id) {
+    const r=(kind==='santri'?S.santri:S.guru).find(x=>x.id===id);if(!r)return;
+    openModal('Konfirmasi Hapus', `
+        <div class="text-center py-4">
+            <div class="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></div>
+            <h4 class="text-lg font-bold text-slate-800 mb-2">Hapus Data?</h4>
+            <p class="text-slate-500">Anda yakin ingin menghapus data <b>${esc(r.nama)}</b>? Tindakan ini tidak dapat dibatalkan.</p>
+        </div>
+        <div class="flex justify-center gap-3 mt-6">
+            <button class="px-6 py-2.5 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 font-medium transition" onclick="closeModal()">Batal</button>
+            <button class="px-6 py-2.5 bg-red-500 text-white rounded-xl hover:bg-red-600 font-medium transition shadow-lg shadow-red-500/30" onclick="execDelRec('${kind}','${id}')">Ya, Hapus</button>
+        </div>
+    `);
+}
+async function execDelRec(kind,id){
+ closeModal(); busy(true,'Menghapus…');
+ try{await api('deleteRow',kind,id);await refresh(kind);toast('Data dihapus');go(cur)}catch(e){toast(e.message,'err')}
+ busy(false);
+}
+
+/* ===================== PENGATURAN ===================== */
+function v_set(){
+ $('#view').innerHTML=`
+ <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+        <h2 class="font-sans font-bold text-xl text-slate-800 mb-1">Ganti Kredensial</h2>
+        <p class="text-sm text-slate-500 mb-6">Ubah username dan kata sandi admin.</p>
+        <form id="fS" class="space-y-4">
+            <div><label class="block text-sm font-medium text-slate-700 mb-1">Sandi Lama</label><input type="password" id="so" required class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-brand-primary outline-none bg-slate-50"></div>
+            <div><label class="block text-sm font-medium text-slate-700 mb-1">Username Baru</label><input type="text" id="su" required class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-brand-primary outline-none bg-slate-50"></div>
+            <div><label class="block text-sm font-medium text-slate-700 mb-1">Sandi Baru (min 6 char)</label><input type="password" id="sp" required minlength="6" class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-brand-primary outline-none bg-slate-50"></div>
+            <button class="w-full py-2.5 mt-2 bg-brand-primary text-white rounded-xl font-semibold hover:bg-brand-primary-dark transition">Simpan Akun</button>
+        </form>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col items-center text-center justify-center">
+        <div class="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-4"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg></div>
+        <h2 class="font-sans font-bold text-xl text-slate-800 mb-1">Sinkronisasi Data</h2>
+        <p class="text-sm text-slate-500 mb-6">Tarik ulang data terbaru langsung dari Google Sheet jika terjadi ketidaksesuaian.</p>
+        <button class="px-8 py-2.5 border-2 border-brand-primary text-brand-primary rounded-xl font-semibold hover:bg-brand-primary hover:text-white transition" id="sr">Muat Ulang Sekarang</button>
+    </div>
+ </div>`;
+ $('#fS').onsubmit=async e=>{e.preventDefault();busy(true,'Menyimpan…');try{await api('changeCredentials',$('#so').value,$('#su').value,$('#sp').value);toast('Akun diperbarui. Logout dalam 2 detik.');setTimeout(()=>doLogout(),2000)}catch(er){toast(er.message,'err')}busy(false)};
+ $('#sr').onclick=async()=>{busy(true,'Memuat…');try{await refresh('all');toast('Data berhasil disinkronisasi')}catch(e){toast(e.message,'err')}busy(false)};
+}
+
+/* ===================== MULAI ===================== */
+initPublicForms(); initHomeCalendar(); showPub('home');
+(async function restoreSession(){
+ if(!S.token)return;
+ try{await refresh('all');$('#who').textContent=localStorage.getItem('satupintu_admin_user')||'Admin';$('#pub').classList.add('hidden');$('#admin').classList.remove('hidden');buildMenu();go('dash');}
+ catch(e){doLogout(true);}
+})();
+</script>
+</body>
+</html>
