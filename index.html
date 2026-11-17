@@ -1,6 +1,20 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+<!-- SATU PINTU: pastikan frontend selalu berjalan di dalam pembungkus Web App Apps Script -->
+<script>
+(function () {
+  'use strict';
+  var APPS_SCRIPT_WEB_APP = 'https://script.google.com/macros/s/AKfycbwxXQLpg_XmcTNwcXA8Pal-XccoBHLTGtoCKHOou3A1Mm_3eIuJV-9UTGX_vUvtv4TzQ/exec';
+  var host = String(window.location.hostname || '').toLowerCase();
+  var isGithubPages = host === 'nanggro31.github.io';
+  var isTopLevel = window.top === window.self;
+  if (isGithubPages && isTopLevel) {
+    window.location.replace(APPS_SCRIPT_WEB_APP);
+  }
+})();
+</script>
+
 <base target="_top">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -505,19 +519,33 @@ function toast(m,t){
 function busy(on,m){$('#busy').classList.toggle('hidden', !on); if(m)$('#busyMsg').textContent=m;}
 function call(fn,...args){
  return new Promise((resolve,reject)=>{
-  if(window.parent===window){reject(new Error('Aplikasi harus dibuka melalui URL Web App Google Apps Script.'));return;}
+  if(window.parent===window){
+   reject(new Error('Aplikasi dibuka di luar Web App. Buka kembali melalui URL Web App Google Apps Script.'));
+   return;
+  }
+  if(typeof fn!=='string'||!fn){reject(new Error('Nama fungsi server tidak valid.'));return;}
   const id='sp_'+Date.now().toString(36)+'_'+(++bridgeSeq);
-  const timer=setTimeout(()=>{bridgePending.delete(id);reject(new Error('Koneksi ke server terputus atau terlalu lama. Muat ulang halaman dan coba kembali.'));},45000);
+  const timer=setTimeout(()=>{
+   bridgePending.delete(id);
+   reject(new Error('Tidak ada jawaban dari Google Apps Script selama 45 detik. Periksa deployment Web App dan koneksi internet.'));
+  },45000);
   bridgePending.set(id,{resolve,reject,timer});
-  window.parent.postMessage({type:'SATUPINTU_CALL',id,fn,args},'*');
+  try {
+   window.parent.postMessage({type:'SATUPINTU_CALL',id,fn,args},'*');
+  } catch(err) {
+   clearTimeout(timer);bridgePending.delete(id);
+   reject(new Error('Gagal mengirim permintaan ke Apps Script: '+(err.message||err)));
+  }
  });
 }
 window.addEventListener('message',e=>{
  if(e.source!==window.parent)return;
- const m=e.data||{};if(!['SATUPINTU_RESULT','SATUPINTU_ERROR'].includes(m.type)||!m.id)return;
+ const m=e.data||{};
+ if(!['SATUPINTU_RESULT','SATUPINTU_ERROR'].includes(m.type)||typeof m.id!=='string')return;
  const p=bridgePending.get(m.id);if(!p)return;
  clearTimeout(p.timer);bridgePending.delete(m.id);
- if(m.type==='SATUPINTU_ERROR')p.reject(new Error(m.message||'Kesalahan server.'));else p.resolve(m.result);
+ if(m.type==='SATUPINTU_ERROR')p.reject(new Error(m.message||'Kesalahan server Google Apps Script.'));
+ else p.resolve(m.result);
 });
 async function api(fn,...a){const r=await call(fn,S.token,...a);if(r&&r.auth){doLogout(true);throw new Error('Sesi berakhir, silakan login kembali.')}if(!r||!r.ok)throw new Error((r&&r.msg)||'Terjadi kesalahan.');return r}
 
