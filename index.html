@@ -707,7 +707,7 @@ async function uploadFiles(schema,p,kind,o){
   const file=e.files[0];
   if(file.size>4*1024*1024)throw new Error(f.l+': ukuran berkas maks 4 MB.');
   busy(true,'Mengunggah '+f.l+'…');
-  const r=await call('uploadFile',kind,file.name,file.type,await readB64(file));
+  const r=await call('uploadFile',kind,o.nama,file.name,file.type,await readB64(file));
   if(!r.ok)throw new Error(f.l+': '+r.msg);
   o[f.k]=r.url;
  }
