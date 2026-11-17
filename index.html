@@ -641,7 +641,7 @@ const SS=[
 {t:'III-A. Data Ayah',f:ortu('ayah','Ayah',PEK,'Almarhum')},{t:'III-B. Data Ibu',f:ortu('ibu','Ibu',PEKI,'Almarhumah')},
 {t:'III-C. Alamat Tempat Tinggal',f:[{k:'negara',l:'Negara',d:'Indonesia'},{k:'provinsi',l:'Provinsi',t:'regionProvince',d:'Aceh'},{k:'kabupaten',l:'Kabupaten/Kota',t:'regionRegency'},{k:'kecamatan',l:'Kecamatan',t:'regionDistrict'},{k:'desa',l:'Desa/Kelurahan',t:'regionVillage'},{k:'jalan',l:'Jalan/Dusun'},{k:'kodePos',l:'Kode Pos'}]},
 {t:'III-D. Biodata Wali Santri',f:ortu('wali','Wali',PEK,'Almarhum').concat([{k:'waliHubungan',l:'Hubungan dengan Calon Santri'},{k:'waliJalan',l:'Jalan'},{k:'waliDesa',l:'Desa/Kelurahan'},{k:'waliKec',l:'Kecamatan'},{k:'waliKab',l:'Kabupaten/Kota'}])},
-{t:'Unggah Berkas',note:'Unggah hasil scan/foto (PDF, JPG, PNG) maksimal 4 MB per berkas.',f:[{k:'berkasKtp',l:'KTP Ayah & Ibu',t:'file'},{k:'berkasAkta',l:'Akta Kelahiran',t:'file'},{k:'berkasIjazah',l:'Ijazah / SKL',t:'file'},{k:'berkasNisn',l:'Kartu NISN',t:'file'},{k:'berkasKk',l:'Kartu Keluarga',t:'file'},{k:'berkasFoto',l:'Pas Photo Warna',t:'file'},{k:'berkasBpjs',l:'Kartu BPJS/ASKES',t:'file'}]},
+{t:'Unggah Berkas',note:'Unggah hasil scan/foto (PDF, JPG, JPEG, PNG, WEBP) maksimal 4 MB per berkas.',f:[{k:'berkasKtp',l:'KTP Ayah & Ibu',t:'file'},{k:'berkasAkta',l:'Akta Kelahiran',t:'file'},{k:'berkasIjazah',l:'Ijazah / SKL',t:'file'},{k:'berkasNisn',l:'Kartu NISN',t:'file'},{k:'berkasKk',l:'Kartu Keluarga',t:'file'},{k:'berkasFoto',l:'Pas Photo Warna',t:'file'},{k:'berkasBpjs',l:'Kartu BPJS/ASKES',t:'file'}]},
 {t:'Persetujuan',note:'Saya menyatakan bahwa seluruh data yang diisi adalah benar.',f:[{k:'setuju',t:'check',l:'Persetujuan',c:'Saya menyetujui pernyataan',req:1,w:'full'},{k:'ortuNama',l:'Nama Orang Tua/Wali',req:1},{k:'pendaftarNama',l:'Nama Calon Santri',req:1}]},
 {t:'Administrasi (Admin)',admin:1,f:[{k:'statusSantri',l:'Status Santri',t:'select',o:['Aktif','Alumni','Alumnus'],d:'Aktif'},{k:'tahunKeluar',l:'Tahun Keluar',t:'number'}]}
 ];
@@ -671,7 +671,7 @@ function fld(f,p,v){
  else if(f.t==='select') inp=`<select id="${id}" class="${inputClass}" ${req}><option value="">— Pilih —</option>${f.o.map(o=>`<option ${v===o?'selected':''}>${esc(o)}</option>`).join('')}</select>`;
  else if(['regionProvince','regionRegency','regionDistrict','regionVillage'].includes(f.t)) inp=`<select id="${id}" data-region="${f.t}" class="${inputClass}" ${req}><option value="">${f.t==='regionProvince'?'Memuat provinsi…':'Pilih wilayah sebelumnya terlebih dahulu'}</option></select>`;
  else if(f.t==='ta') inp=`<textarea id="${id}" rows="3" class="${inputClass}" ${req}>${esc(v)}</textarea>`;
- else if(f.t==='file') inp=`<input type="file" id="${id}" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-primary/10 file:text-brand-primary hover:file:bg-brand-primary/20 cursor-pointer border border-slate-200 rounded-xl p-1 bg-slate-50">${v?`<div class="mt-2 text-xs text-slate-500">Tersimpan: <a href="${esc(v)}" target="_blank" class="text-blue-600 hover:underline">Lihat berkas</a></div>`:'<div class="mt-1 text-xs text-slate-400">PDF/JPG/PNG, maks. 4 MB</div>'}`;
+ else if(f.t==='file') inp=`<input type="file" id="${id}" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-primary/10 file:text-brand-primary hover:file:bg-brand-primary/20 cursor-pointer border border-slate-200 rounded-xl p-1 bg-slate-50">${v?`<div class="mt-2 text-xs text-slate-500">Tersimpan: <a href="${esc(v)}" target="_blank" class="text-blue-600 hover:underline">Lihat berkas</a></div>`:'<div class="mt-1 text-xs text-slate-400">PDF/JPG/JPEG/PNG/WEBP, maks. 4 MB</div>'}`;
  else inp=`<input type="${f.t||'text'}" id="${id}" value="${esc(v)}" class="${inputClass}" ${req} ${f.t==='number'?'min="0" step="any"':''}>`;
  
  return `<div class="${f.w==='full'?'col-span-full':''} mb-4"><label for="${id}" class="block text-sm font-medium text-slate-700 mb-1.5">${esc(f.l)}${rq}</label>${inp}</div>`;
@@ -720,7 +720,7 @@ async function uploadFiles(schema,p,kind,o){
   const browserMime=String(file.type||'').toLowerCase().split(';')[0].trim();
   const fromBrowser=canonicalMime[browserMime]||'';
   const normalizedMime=fromExtension||fromBrowser;
-  if(!normalizedMime)throw new Error(f.l+': Format berkas tidak dikenali. Gunakan PDF, JPG, PNG, atau WEBP. Nama berkas: '+(fileName||'(tanpa nama)')+'; tipe: '+(browserMime||'(kosong)'));
+  if(!normalizedMime)throw new Error(f.l+': Format berkas tidak dikenali. Gunakan PDF, JPG, JPEG, PNG, atau WEBP. Nama berkas: '+(fileName||'(tanpa nama)')+'; tipe: '+(browserMime||'(kosong)'));
   busy(true,'Mengunggah '+f.l+'…');
   const r=await call('uploadFile',kind,o.nama,fileName,normalizedMime,await readB64(file));
   if(!r.ok)throw new Error(f.l+': '+r.msg);
