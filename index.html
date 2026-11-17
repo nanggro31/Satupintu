@@ -1178,13 +1178,14 @@ async function v_absen(mode){
         </div>
     </div>
     <div class="p-4 bg-slate-50 border-b border-slate-100 grid grid-cols-1 gap-4">
-        <div><label class="block text-xs font-medium text-slate-500 mb-1">${isK?'Pilih Kelas':'Pilih Pengasuh Kamar'}</label><select id="aG" class="w-full md:w-1/3 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-brand-primary">${groups.map(g=>`<option>${esc(g)}</option>`).join('')}</select></div>
+        <div><label class="block text-xs font-medium text-slate-500 mb-1">${isK?'Pilih Kelas':'Pilih Pengasuh Kamar'}</label><select id="aG" class="w-full md:w-1/3 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-brand-primary"><option value="__ALL__">${isK?'Semua Kelas':'Semua Pengasuh'}</option>${groups.map(g=>`<option value="${esc(g)}">${esc(g)}</option>`).join('')}</select></div>
     </div>
     <div class="overflow-x-auto max-h-[60vh]" id="aT"></div>
  </div>`;
  
  let list=[];
- const lst=()=>sorted(act().filter(s=>(isK?s.kelasSekarang:sKamar(s))===$('#aG').value));
+ const lst=()=>{const selected=$('#aG').value;return sorted(act().filter(s=>selected==='__ALL__'||(isK?s.kelasSekarang:sKamar(s))===selected));};
+ const selectedLabel=()=>$('#aG').value==='__ALL__'?(isK?'SEMUA KELAS':'SEMUA PENGASUH'):$('#aG').value;
  
  const drawD=()=>{
   list=lst();
@@ -1198,21 +1199,21 @@ async function v_absen(mode){
  };
 
  $('#aG').onchange=drawD;
- if(!isK)$('#aRoomPrint').onclick=()=>{const data=lst();if(!data.length)return toast('Tidak ada santri pada kamar/pengasuh ini.','err');printRoom($('#aG').value,data);};
+ if(!isK)$('#aRoomPrint').onclick=()=>{const data=lst();if(!data.length)return toast('Tidak ada santri pada kamar/pengasuh ini.','err');printRoom(selectedLabel(),data);};
  
  $('#aX').onclick=()=>{
      list=lst();
      if(!list.length) return toast('Tidak ada data untuk dicetak','err');
-     if(!isK){exportRoomExcel($('#aG').value,list);return;}
+     if(!isK){exportRoomExcel(selectedLabel(),list);return;}
      const head = ['No', 'NISN', 'Nama Lengkap', 'L/P', ...Array.from({length:31}, (_,i)=>i+1), 'Ket'];
      const body = list.map((s,i) => [i+1, s.nisn, s.nama, s.jk==='Laki-laki'?'L':'P', ...Array(31).fill(''), '']);
-     xlsx(slug('absensi-'+mode+'-'+$('#aG').value), head, body);
+     xlsx(slug('absensi-'+mode+'-'+selectedLabel()), head, body);
  };
  
  $('#aP').onclick=()=>{
      list=lst();
      if(!list.length) return toast('Tidak ada data untuk dicetak','err');
-     if(!isK){exportRoomPdf($('#aG').value,list);return;}
+     if(!isK){exportRoomPdf(selectedLabel(),list);return;}
      const head = ['No', 'NISN', 'Nama Lengkap', 'L/P', ...Array.from({length:31}, (_,i)=>i+1), 'Ket'];
      const body = list.map((s,i) => [i+1, s.nisn, s.nama, s.jk==='Laki-laki'?'L':'P', ...Array(31).fill(''), '']);
      
@@ -1224,7 +1225,7 @@ async function v_absen(mode){
      d.setFontSize(14);
      
      if (isK) {
-         const t1 = `DAFTAR ABSENSI KELAS ${$('#aG').value}`;
+         const t1 = `DAFTAR ABSENSI KELAS ${selectedLabel()}`;
          d.text(t1, (pageWidth - d.getTextWidth(t1)) / 2, 16); // Center title
          
          d.setFont("helvetica", "normal");
@@ -1239,7 +1240,7 @@ async function v_absen(mode){
          d.setFont("helvetica", "normal");
          d.setFontSize(10);
          d.text('Dayah Babul Maghfirah', 14, 24);
-         d.text(`Nama Pengasuh : ${$('#aG').value}`, 14, 30);
+         d.text(`Nama Pengasuh : ${selectedLabel()}`, 14, 30);
          d.text('Kamar                : ........................', 14, 36);
          d.text('Bulan                  : ........................', 14, 42);
      }
