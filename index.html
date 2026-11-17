@@ -482,6 +482,14 @@ const num=v=>{const n=parseFloat(String(v||'').replace(/[^\d.-]/g,''));return is
 const nk=v=>String(v||'').trim().toUpperCase();
 const uniq=a=>[...new Set(a.filter(Boolean))].sort((x,y)=>x.localeCompare(y,'id'));
 const S={token:localStorage.getItem('satupintu_admin_token')||'',santri:[],guru:[],absensi:[]};
+
+// Menampilkan/menyembunyikan overlay proses untuk login dan operasi aplikasi.
+function busy(show, message='Memproses…'){
+ const overlay=$('#busy');
+ const label=$('#busyMsg');
+ if(label) label.textContent=message;
+ if(overlay) overlay.classList.toggle('hidden',!show);
+}
 const bridgePending=new Map();
 let bridgeSeq=0;
 let tt;
