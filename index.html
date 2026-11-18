@@ -1327,7 +1327,7 @@ async function v_absen(mode){
    $('#aT').innerHTML=list.length?`<table><thead><tr>${head.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${body.map(r=>`<tr>${r.map((v,i)=>`<td class="${i===0?'text-slate-400 text-xs':i===1?'font-medium':''}">${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table>`:'<div class="p-12 text-center text-slate-500">Tidak ada santri pada kelompok ini.</div>';
    return;
   }
-  $('#aT').innerHTML=list.length?`<table><thead><tr><th>No</th><th>NISN</th><th>Nama</th><th>L/P</th></tr></thead><tbody>${list.map((s,i)=>`<tr><td class="text-slate-400 text-xs">${i+1}</td><td>${esc(s.nisn)}</td><td class="font-medium">${esc(s.nama)}</td><td class="text-xs text-slate-500">${s.jk==='Laki-laki'?'L':'P'}</td></tr>`).join('')}</tbody></table>`:'<div class="p-12 text-center text-slate-500">Tidak ada santri pada kelompok ini.</div>';
+  $('#aT').innerHTML=list.length?`<table><thead><tr><th>No</th><th>NISN</th><th>Nama</th><th>L/P</th><th>Kelas</th></tr></thead><tbody>${list.map((s,i)=>`<tr><td class="text-slate-400 text-xs">${i+1}</td><td>${esc(s.nisn)}</td><td class="font-medium">${esc(s.nama)}</td><td class="text-xs text-slate-500">${s.jk==='Laki-laki'?'L':'P'}</td><td>${esc(s.kelasSekarang)}</td></tr>`).join('')}</tbody></table>`:'<div class="p-12 text-center text-slate-500">Tidak ada santri pada kelompok ini.</div>'; 
  };
 
  $('#aG').onchange=drawD;
